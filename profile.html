@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon profil - Confidences</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="profile-page">
+  <header class="navbar">
+    <a href="/" class="brand"><span class="brand-icon">♥</span><span>Confidences</span></a>
+    <nav class="nav-links"><a href="/">Accueil</a><a href="/#confessions">Confessions</a><a href="/#coachs">Coachs</a></nav>
+    <button id="logout-button" type="button" class="btn btn-danger">Se déconnecter</button>
+  </header>
+  <main class="profile-shell">
+    <section class="profile-heading">
+      <span class="eyebrow">ESPACE PERSONNEL</span>
+      <h1>Mon profil</h1>
+      <p>Gérez vos informations et retrouvez vos publications.</p>
+    </section>
+    <div class="profile-grid">
+      <section class="profile-panel">
+        <div class="profile-panel-heading">
+          <h2>Mes informations</h2>
+          <button id="edit-profile-button" type="button" class="btn btn-danger">Modifier</button>
+        </div>
+        <div id="profile-summary" class="profile-summary">
+          <p><strong>Nom</strong><span id="profile-summary-name">Chargement...</span></p>
+          <p><strong>Adresse e-mail</strong><span id="profile-summary-email">Chargement...</span></p>
+        </div>
+        <form id="profile-form" hidden>
+          <label>Nom<input id="profile-name" type="text" required></label>
+          <label>Adresse e-mail<input id="profile-email" type="email" required></label>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <button id="cancel-profile-button" type="button" class="btn btn-outline">Annuler</button>
+          </div>
+        </form>
+        <p id="profile-message" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="profile-panel">
+        <h2>Mes publications</h2>
+        <div id="my-posts" class="profile-posts"><p class="comments-loading">Chargement...</p></div>
+      </section>
+      <section id="coach-application" class="profile-panel coach-application-panel">
+        <div class="profile-panel-heading">
+          <h2>Devenir coach</h2>
+          <span id="coach-application-status" class="application-status">Non candidat</span>
+        </div>
+        <p class="panel-description">Proposez votre profil. Il sera vérifié par notre équipe avant d’être visible dans la liste des coachs.</p>
+        <form id="coach-application-form" hidden>
+          <label>Spécialité<input id="coach-speciality" name="speciality" maxlength="150" placeholder="Ex. confiance en soi" required></label>
+          <label>Années d’expérience<input id="coach-experience" name="experience" type="number" min="0" max="80" required></label>
+          <label>Présentation<textarea id="coach-bio" name="bio" maxlength="5000" placeholder="Présentez votre approche et votre parcours..."></textarea></label>
+          <button type="submit" class="btn btn-primary">Envoyer ma candidature</button>
+        </form>
+        <button id="show-coach-application" type="button" class="btn btn-danger">Devenir coach</button>
+        <p id="coach-application-message" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+  <script src="profile.js" defer></script>
+</body>
+</html>

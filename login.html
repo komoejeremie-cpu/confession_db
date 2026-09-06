@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - Confidences</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <a href="/" class="brand"><span class="brand-icon">♥</span><span>Confidences</span></a>
+    <section class="auth-card">
+      <span class="eyebrow">ESPACE PERSONNEL</span>
+      <h1>Bon retour parmi nous</h1>
+      <p>Connectez-vous pour retrouver vos confessions et votre profil.</p>
+      <form data-auth-form="login">
+        <label>Adresse e-mail<input type="email" name="email" autocomplete="email" required></label>
+        <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+        <button type="submit" class="btn btn-primary btn-full">Se connecter</button>
+      </form>
+      <p class="form-message" data-form-message role="status" aria-live="polite"></p>
+      <p class="auth-switch">Pas encore de compte ? <a href="/register.html">Créer un compte</a></p>
+      <a class="back-link" href="/">Retour à l'accueil</a>
+    </section>
+  </main>
+  <script src="auth-pages.js" defer></script>
+</body>
+</html>
