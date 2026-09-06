@@ -106,7 +106,11 @@ app.get(
 app.use(
   express.static(__dirname)
 );
-
+app.get('/', (_request, response) => {
+  response.sendFile(
+    path.join(__dirname, 'index.html')
+  );
+});
 /*
 |--------------------------------------------------------------------------
 | Health check
