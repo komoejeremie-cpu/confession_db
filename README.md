@@ -44,6 +44,7 @@ Copier le bloc suivant dans une autre IA apres lui avoir donne acces au dossier 
 - Chargement des coachs approuves depuis `GET /api/coaches`.
 - Formulaire d'inscription via `POST /api/auth/register`.
 - Validation de l'adresse e-mail et longueur minimale du mot de passe.
+- Confirmation obligatoire du mot de passe avant toute inscription.
 - Hash du mot de passe avec `crypto.scrypt` et sel aleatoire.
 - Protection basique avec Helmet et limite JSON de `100kb`.
 - Route de diagnostic `GET /api/health`.
@@ -351,3 +352,21 @@ Depuis `/profile.html#coach-application`, un utilisateur connecte peut envoyer u
 - Une candidature `PENDING` ou `APPROVED` ne peut pas etre envoyee une seconde fois.
 - Seuls les profils `APPROVED` apparaissent dans la liste publique des coachs.
 - La validation ou le refus par un administrateur reste a implementer.
+
+## Administration
+
+- `/admin.html` est reserve aux sessions dont le role vaut `ADMIN`.
+- `/admin-login.html` est le lien de connexion distinct reserve aux administrateurs.
+- Le tableau de bord affiche les statistiques, les comptes, les candidatures coach et les confessions.
+- L'administrateur peut valider/refuser/suspendre un profil coach, modifier un role, supprimer un compte et supprimer une confession.
+- L'administrateur peut modifier son mot de passe depuis le tableau de bord en confirmant son ancien mot de passe et le nouveau.
+- Un lien Administration apparait dans le profil d'un administrateur.
+- Le formulaire `/register.html` propose `Compte utilisateur` ou `Compte coach`. Un compte coach recoit le role `COACH` et une candidature `PENDING` dans une transaction SQL.
+
+Pour promouvoir un compte existant en administrateur depuis phpMyAdmin :
+
+```sql
+UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';
+```
+
+Cette operation doit etre executee uniquement par le proprietaire de la base. Aucun compte administrateur n'etait present lors du dernier diagnostic.

@@ -6,7 +6,7 @@ import {
 } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { query } from '../db.js';
+import { pool, query } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -52,7 +52,13 @@ async function createSession(userId, response) {
   setSessionCookie(response, token);
 }
 
-async function verifyPassword(password, storedHash) {
+export async function hashPassword(password) {
+  const salt = randomBytes(16).toString('hex');
+  const derivedKey = await scrypt(password, salt, 64);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+export async function verifyPassword(password, storedHash) {
   if (!storedHash || typeof storedHash !== 'string') {
     return false;
   }
@@ -79,14 +85,29 @@ async function verifyPassword(password, storedHash) {
 
 router.post('/register', async (request, response, next) => {
   try {
-    const { name, email, password } = request.body;
+    const {
+      name,
+      email,
+      password,
+      passwordConfirmation,
+      accountType = 'USER',
+      speciality,
+      experience,
+      bio = ''
+    } = request.body;
 
     const normalizedName = name?.trim();
     const normalizedEmail = email?.trim().toLowerCase();
 
-    if (!normalizedName || !normalizedEmail || !password) {
+    if (!normalizedName || !normalizedEmail || !password || !passwordConfirmation) {
       return response.status(400).json({
-        error: 'Nom, adresse e-mail et mot de passe sont obligatoires.'
+        error: 'Nom, adresse e-mail et confirmation du mot de passe sont obligatoires.'
+      });
+    }
+
+    if (password !== passwordConfirmation) {
+      return response.status(400).json({
+        error: 'Les deux mots de passe ne correspondent pas.'
       });
     }
 
@@ -102,6 +123,14 @@ router.post('/register', async (request, response, next) => {
       });
     }
 
+    const role = accountType === 'COACH' ? 'COACH' : 'USER';
+    const coachSpeciality = speciality?.trim();
+    const coachExperience = Number(experience);
+
+    if (role === 'COACH' && (!coachSpeciality || !Number.isInteger(coachExperience) || coachExperience < 0 || coachExperience > 80)) {
+      return response.status(400).json({ error: 'Spécialité et expérience valides obligatoires pour un compte coach.' });
+    }
+
     const [existingUsers] = await query(
       'SELECT id FROM users WHERE email = ? LIMIT 1',
       [normalizedEmail]
@@ -113,37 +142,42 @@ router.post('/register', async (request, response, next) => {
       });
     }
 
-    const salt = randomBytes(16).toString('hex');
+    const passwordHash = await hashPassword(password);
 
-    const derivedKey = await scrypt(
-      password,
-      salt,
-      64
-    );
+    const connection = await pool.getConnection();
+    let userId;
 
-    const passwordHash =
-      `${salt}:${derivedKey.toString('hex')}`;
+    try {
+      await connection.beginTransaction();
+      const [result] = await connection.execute(
+        `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`,
+        [normalizedName, normalizedEmail, passwordHash, role]
+      );
+      userId = result.insertId;
 
-    const [result] = await query(
-      `INSERT INTO users
-        (name, email, password, role)
-       VALUES
-        (?, ?, ?, ?)`,
-      [
-        normalizedName,
-        normalizedEmail,
-        passwordHash,
-        'USER'
-      ]
-    );
+      if (role === 'COACH') {
+        await connection.execute(
+          `INSERT INTO coach_profiles (user_id, speciality, experience, bio, status, rating_avg)
+           VALUES (?, ?, ?, ?, 'PENDING', 0.00)`,
+          [userId, coachSpeciality, coachExperience, bio.trim()]
+        );
+      }
 
-    await createSession(result.insertId, response);
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
+    await createSession(userId, response);
 
     response.status(201).json({
-      id: result.insertId,
+      id: userId,
       name: normalizedName,
       email: normalizedEmail,
-      role: 'USER'
+      role
     });
   } catch (error) {
     next(error);

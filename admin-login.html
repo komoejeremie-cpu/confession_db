@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion administrateur - Confidences</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page admin-auth-page">
+  <main class="auth-shell">
+    <a href="/" class="brand"><span class="brand-icon">♥</span><span>Confidences</span></a>
+    <section class="auth-card">
+      <span class="eyebrow">ACCÈS SÉCURISÉ</span>
+      <h1>Connexion administrateur</h1>
+      <p>Accédez à la gestion des comptes, coachs et publications.</p>
+      <form id="admin-login-form">
+        <label>Adresse e-mail<input type="email" name="email" autocomplete="username" required></label>
+        <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+        <button type="submit" class="btn btn-danger btn-full">Accéder à l’administration</button>
+      </form>
+      <p id="admin-login-message" class="form-message" role="status" aria-live="polite"></p>
+      <a class="back-link" href="/login.html">Connexion utilisateur</a>
+    </section>
+  </main>
+  <script src="admin-login.js" defer></script>
+</body>
+</html>

@@ -1,4 +1,25 @@
+import fs from 'node:fs';
 import mysql from 'mysql2/promise';
+
+function getSslConfig() {
+  // Pour Vercel : certificat fourni directement dans une variable d'environnement
+  if (process.env.DB_SSL_CA) {
+    return {
+      rejectUnauthorized: true,
+      ca: process.env.DB_SSL_CA.replace(/\\n/g, '\n')
+    };
+  }
+
+  // Pour le développement local : certificat dans un fichier
+  if (process.env.DB_SSL_CA_PATH) {
+    return {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(process.env.DB_SSL_CA_PATH)
+    };
+  }
+
+  return undefined;
+}
 
 export const pool = mysql.createPool({
   host: process.env.DB_HOST || '127.0.0.1',
@@ -6,6 +27,8 @@ export const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'confessions_db',
+
+  ssl: getSslConfig(),
 
   waitForConnections: true,
   connectionLimit: 10,
@@ -19,48 +42,42 @@ export async function query(text, values = []) {
 
 export async function ensureSchema() {
   const statements = [
-    `
-    CREATE TABLE IF NOT EXISTS sessions (
-      token CHAR(64) PRIMARY KEY,
+    `CREATE TABLE IF NOT EXISTS sessions (
+      token CHAR(64) NOT NULL,
       user_id INT NOT NULL,
       expires_at DATETIME NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_sessions_user_id (user_id),
-      INDEX idx_sessions_expires_at (expires_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `,
+      PRIMARY KEY (token),
+      KEY user_id (user_id),
+      KEY expires_at (expires_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    `
-    CREATE TABLE IF NOT EXISTS confession_likes (
+    `CREATE TABLE IF NOT EXISTS confession_likes (
       confession_id INT NOT NULL,
       user_id INT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (confession_id, user_id),
-      INDEX idx_likes_user_id (user_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `,
+      KEY user_id (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    `
-    CREATE TABLE IF NOT EXISTS confession_favorites (
+    `CREATE TABLE IF NOT EXISTS confession_favorites (
       confession_id INT NOT NULL,
       user_id INT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (confession_id, user_id),
-      INDEX idx_favorites_user_id (user_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `,
+      KEY user_id (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    `
-    CREATE TABLE IF NOT EXISTS confession_comments (
-      id INT AUTO_INCREMENT PRIMARY KEY,
+    `CREATE TABLE IF NOT EXISTS confession_comments (
+      id INT NOT NULL AUTO_INCREMENT,
       confession_id INT NOT NULL,
       user_id INT NOT NULL,
       content VARCHAR(1000) NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_comments_confession_id (confession_id),
-      INDEX idx_comments_user_id (user_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `
+      PRIMARY KEY (id),
+      KEY confession_id (confession_id),
+      KEY user_id (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
   ];
 
   for (const statement of statements) {

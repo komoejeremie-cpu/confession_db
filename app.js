@@ -217,7 +217,7 @@ loginForm?.addEventListener('submit', async (event) => {
     const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(loginForm))) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Connexion impossible.');
-    window.location.assign('/profile.html');
+    window.location.replace(data.role === 'ADMIN' ? '/admin.html' : '/profile.html');
   } catch (error) {
     showToast(error.message, 'error', 'Connexion impossible');
   } finally {
@@ -282,6 +282,11 @@ signupForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const button = signupForm.querySelector('button');
   const formData = new FormData(signupForm);
+
+  if (formData.get('password') !== formData.get('passwordConfirmation')) {
+    showToast('Les deux mots de passe ne correspondent pas.', 'error', 'Inscription impossible');
+    return;
+  }
 
   button.disabled = true;
   button.textContent = 'Création...';

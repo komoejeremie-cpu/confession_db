@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration - Confidences</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-page">
+  <header class="navbar">
+    <a href="/" class="brand"><span class="brand-icon">♥</span><span>Confidences</span></a>
+    <span class="admin-label">Administration</span>
+    <button id="admin-logout" type="button" class="btn btn-danger">Se déconnecter</button>
+  </header>
+  <main class="admin-shell">
+    <section class="profile-heading"><span class="eyebrow">CONTRÔLE DU SITE</span><h1>Tableau de bord</h1><p>Gérez les comptes, les candidatures coach et les publications.</p></section>
+    <div id="admin-message" class="form-message" role="status" aria-live="polite"></div>
+    <div id="admin-confirm" class="admin-confirm" hidden>
+      <p id="admin-confirm-message"></p>
+      <div><button id="admin-confirm-cancel" type="button" class="btn btn-outline">Annuler</button><button id="admin-confirm-accept" type="button" class="btn btn-danger">Confirmer</button></div>
+    </div>
+    <section class="admin-stats">
+      <article><strong id="stat-users">0</strong><span>Comptes</span></article>
+      <article><strong id="stat-coaches">0</strong><span>Candidatures en attente</span></article>
+      <article><strong id="stat-confessions">0</strong><span>Confessions</span></article>
+    </section>
+    <section class="admin-panel"><div class="admin-section-heading"><h2>Mot de passe administrateur</h2></div><form id="admin-password-form" class="admin-password-form"><label>Mot de passe actuel<input type="password" name="currentPassword" autocomplete="current-password" required></label><label>Nouveau mot de passe<input type="password" name="newPassword" minlength="8" autocomplete="new-password" required></label><label>Confirmer le nouveau mot de passe<input type="password" name="passwordConfirmation" minlength="8" autocomplete="new-password" required></label><button type="submit" class="btn btn-danger">Modifier le mot de passe</button></form></section>
+    <section class="admin-panel"><div class="admin-section-heading"><h2>Candidatures coach</h2><button type="button" class="btn btn-outline" data-reload="applications">Actualiser</button></div><div id="applications-list" class="admin-list"></div></section>
+    <section class="admin-panel"><div class="admin-section-heading"><h2>Comptes utilisateurs</h2><button type="button" class="btn btn-outline" data-reload="users">Actualiser</button></div><div id="users-list" class="admin-list"></div></section>
+    <section class="admin-panel"><div class="admin-section-heading"><h2>Confessions publiées</h2><button type="button" class="btn btn-outline" data-reload="confessions">Actualiser</button></div><div id="admin-confessions-list" class="admin-list"></div></section>
+  </main>
+  <script src="admin.js" defer></script>
+</body>
+</html>

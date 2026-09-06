@@ -16,6 +16,7 @@ const coachApplicationMessage = document.querySelector('#coach-application-messa
 const coachSpeciality = document.querySelector('#coach-speciality');
 const coachExperience = document.querySelector('#coach-experience');
 const coachBio = document.querySelector('#coach-bio');
+const adminLink = document.querySelector('#admin-link');
 
 function setEditMode(enabled) {
   profileForm.hidden = !enabled;
@@ -74,6 +75,7 @@ async function loadProfile() {
   profileEmail.value = profile.email;
   profileSummaryName.textContent = profile.name;
   profileSummaryEmail.textContent = profile.email;
+  adminLink.hidden = profile.role !== 'ADMIN';
   setEditMode(false);
   setCoachStatus(application?.status);
   if (application) {

@@ -14,9 +14,20 @@
       <h1>Créer votre espace</h1>
       <p>Votre identité restera protégée lorsque vous publierez une confession.</p>
       <form data-auth-form="register">
+        <fieldset class="account-choice">
+          <legend>Type de compte</legend>
+          <label><input type="radio" name="accountType" value="USER" checked> Compte utilisateur</label>
+          <label><input type="radio" name="accountType" value="COACH"> Compte coach</label>
+        </fieldset>
+        <div id="coach-fields" class="coach-register-fields" hidden>
+          <label>Spécialité<input type="text" name="speciality" maxlength="150" placeholder="Ex. confiance en soi"></label>
+          <label>Années d’expérience<input type="number" name="experience" min="0" max="80"></label>
+          <label>Présentation<textarea name="bio" maxlength="5000" placeholder="Présentez votre parcours..."></textarea></label>
+        </div>
         <label>Nom<input type="text" name="name" autocomplete="name" required></label>
         <label>Adresse e-mail<input type="email" name="email" autocomplete="email" required></label>
         <label>Mot de passe<input type="password" name="password" minlength="8" autocomplete="new-password" required></label>
+        <label>Confirmer le mot de passe<input type="password" name="passwordConfirmation" minlength="8" autocomplete="new-password" required></label>
         <button type="submit" class="btn btn-primary btn-full">Créer mon compte</button>
       </form>
       <p class="form-message" data-form-message role="status" aria-live="polite"></p>
