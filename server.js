@@ -89,7 +89,7 @@ app.get(
       }
 
       return response.sendFile(
-        path.join(__dirname, 'admin.html')
+        path.join(__dirname, 'public', 'admin.html')
       );
     } catch (error) {
       next(error);
@@ -110,7 +110,7 @@ app.use(
 );
 
 app.use(
-  express.static(__dirname)
+  express.static(path.join(__dirname, 'public'))
 );
 app.get('/', (_request, response) => {
   response.sendFile(
