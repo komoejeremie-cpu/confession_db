@@ -97,6 +97,335 @@ function escapeHtml(value = '') {
     '"': '&quot;'
   })[character]);
 }
+function icon(name, size = 18) {
+  const icons = {
+    heart: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M20.8 8.7c0 5.5-8.8 10.2-8.8 10.2S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+
+    comment: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.5-.7L4 20l1.4-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+
+    reply: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M9 8 4 12l5 4"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 12h9a6 6 0 0 1 6 6"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+
+    send: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="m4 4 16 8-16 8 3-8-3-8Z"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 12h13"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round"/>
+      </svg>`,
+
+    user: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <circle cx="12" cy="8" r="3.5"
+          fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M5 20a7 7 0 0 1 14 0"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round"/>
+      </svg>`,
+
+    star: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
+          fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linejoin="round"/>
+      </svg>`
+  };
+
+  return icons[name] || '';
+}
+function buildCommentTree(comments) {
+  const map = new Map();
+
+  comments.forEach((comment) => {
+    map.set(Number(comment.id), {
+      ...comment,
+      id: Number(comment.id),
+      parent_comment_id: comment.parent_comment_id
+        ? Number(comment.parent_comment_id)
+        : null,
+      children: []
+    });
+  });
+
+  const roots = [];
+
+  map.forEach((comment) => {
+    if (
+      comment.parent_comment_id !== null &&
+      map.has(comment.parent_comment_id)
+    ) {
+      map.get(comment.parent_comment_id).children.push(comment);
+    } else {
+      roots.push(comment);
+    }
+  });
+
+  return roots;
+}
+function renderCommentTree(comments, level = 0) {
+  if (!comments.length) {
+    return `
+      <div class="comments-empty">
+        Aucun commentaire pour le moment.
+      </div>
+    `;
+  }
+
+  return comments.map((comment) => {
+    const authorName = escapeHtml(
+      comment.author_name || 'Utilisateur'
+    );
+
+    const content = escapeHtml(
+      comment.content || ''
+    );
+
+    const likesCount = Number(
+      comment.likes_count || 0
+    );
+
+    const liked = Boolean(comment.liked);
+
+    const createdAt = comment.created_at
+      ? new Date(comment.created_at).toLocaleString(
+          'fr-FR',
+          {
+            dateStyle: 'short',
+            timeStyle: 'short'
+          }
+        )
+      : '';
+
+    return `
+      <article
+        class="comment-item"
+        data-comment-id="${comment.id}"
+      >
+
+        <div class="comment-avatar">
+          ${icon('user', 18)}
+        </div>
+
+        <div class="comment-body">
+
+          <div class="comment-header">
+            <strong class="comment-author">
+              ${authorName}
+            </strong>
+
+            <time class="comment-date">
+              ${escapeHtml(createdAt)}
+            </time>
+          </div>
+
+          <div class="comment-content">
+            ${content}
+          </div>
+
+          <div class="comment-actions">
+
+            <button
+              type="button"
+              class="comment-action comment-like-button ${liked ? 'is-liked' : ''}"
+              data-comment-id="${comment.id}"
+              aria-label="Aimer le commentaire"
+            >
+              <span class="icon">
+                ${icon('heart', 17)}
+              </span>
+
+              <span class="comment-like-count">
+                ${likesCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="comment-action reply-button"
+              data-comment-id="${comment.id}"
+              aria-label="Répondre au commentaire"
+            >
+              <span class="icon">
+                ${icon('reply', 17)}
+              </span>
+
+              <span>Répondre</span>
+            </button>
+
+          </div>
+
+          <form
+            class="reply-form"
+            data-parent-comment-id="${comment.id}"
+            hidden
+          >
+            <input
+              type="text"
+              name="content"
+              maxlength="1000"
+              placeholder="Écrire une réponse..."
+              required
+            >
+
+            <button type="submit">
+              ${icon('send', 17)}
+              <span>Envoyer</span>
+            </button>
+          </form>
+
+          ${
+            comment.children?.length
+              ? `
+                <div class="comment-children">
+                  ${renderCommentTree(
+                    comment.children,
+                    level + 1
+                  )}
+                </div>
+              `
+              : ''
+          }
+
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+async function loadComments(confessionId) {
+  const commentsContainer = document.querySelector(
+    `[data-comments-for="${confessionId}"]`
+  );
+
+  if (!commentsContainer) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/confessions/${confessionId}/comments`
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        'Impossible de charger les commentaires.'
+      );
+    }
+
+    const comments = await response.json();
+
+    const tree = buildCommentTree(comments);
+
+    commentsContainer.innerHTML =
+      renderCommentTree(tree);
+
+  } catch (error) {
+    console.error(error);
+
+    commentsContainer.innerHTML = `
+      <div class="comments-error">
+        Impossible de charger les commentaires.
+      </div>
+    `;
+  }
+}
+
+function icon(name, size = 18) {
+  const icons = {
+    heart: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M20.8 8.7c0 5.5-8.8 10.2-8.8 10.2S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+      </svg>`,
+
+    comment: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.5-.7L4 20l1.4-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+      </svg>`,
+
+    reply: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M9 8 4 12l5 4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+        <path d="M4 12h9a6 6 0 0 1 6 6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+      </svg>`,
+
+    send: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="m4 4 16 8-16 8 3-8-3-8Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+        <path d="M7 12h13"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"/>
+      </svg>`,
+
+    user: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <circle cx="12" cy="8" r="3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"/>
+        <path d="M5 20a7 7 0 0 1 14 0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"/>
+      </svg>`,
+
+    star: `
+      <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+        <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"/>
+      </svg>`
+  };
+
+  return icons[name] || '';
+}
 
 function formatDate(value) {
   return new Intl.RelativeTimeFormat('fr', { numeric: 'auto' }).format(
@@ -106,30 +435,119 @@ function formatDate(value) {
 }
 
 function renderConfessions(confessions) {
-  if (confessionCount) confessionCount.textContent = confessions.length;
+  if (confessionCount) {
+    confessionCount.textContent = confessions.length;
+  }
+
   if (!confessionGrid) return;
+
   if (!confessions.length) {
-    confessionGrid.innerHTML = '<p class="empty-state">Aucune confession ne correspond à votre recherche.</p>';
+    confessionGrid.innerHTML = `
+      <p class="empty-state">
+        Aucune confession ne correspond à votre recherche.
+      </p>
+    `;
     return;
   }
+
   confessionGrid.innerHTML = confessions.map((confession) => `
-    <article class="confession-card" data-confession-id="${confession.id}">
+    <article
+      class="confession-card"
+      data-confession-id="${confession.id}"
+    >
+
       <div class="card-top">
-        <div class="anon"><span>♙</span><div><strong>Anonyme</strong><small>${formatDate(confession.created_at)}</small></div></div>
-        <span class="tag">${escapeHtml(confession.category)}</span>
+        <div class="anon">
+          <span class="anon-icon">
+            ${icon('user', 20)}
+          </span>
+
+          <div>
+            <strong>Anonyme</strong>
+            <small>
+              ${formatDate(confession.created_at)}
+            </small>
+          </div>
+        </div>
+
+        <span class="tag">
+          ${escapeHtml(confession.category)}
+        </span>
       </div>
-      <h3>« ${escapeHtml(confession.title)} »</h3>
-      <p>${escapeHtml(confession.content)}</p>
+
+      <h3>
+        « ${escapeHtml(confession.title)} »
+      </h3>
+
+      <p>
+        ${escapeHtml(confession.content)}
+      </p>
+
       <div class="card-meta card-actions">
-        <button type="button" class="interaction-button like-button">♡ <span>${confession.likes_count ?? 0}</span></button>
-        <button type="button" class="interaction-button comment-button">◇ <span>${confession.comments_count ?? 0}</span></button>
-        <button type="button" class="interaction-button favorite-button">☆ <span>Favori</span></button>
+
+        <button
+          type="button"
+          class="interaction-button like-button"
+          aria-label="Aimer la confession"
+        >
+          ${icon('heart', 18)}
+          <span>${confession.likes_count ?? 0}</span>
+        </button>
+
+        <button
+          type="button"
+          class="interaction-button comment-button"
+          aria-label="Voir les commentaires"
+        >
+          ${icon('comment', 18)}
+          <span>${confession.comments_count ?? 0}</span>
+        </button>
+
+        <button
+          type="button"
+          class="interaction-button favorite-button"
+          aria-label="Ajouter aux favoris"
+        >
+          ${icon('star', 18)}
+          <span>Favori</span>
+        </button>
+
       </div>
-      <div class="comments-list" data-comments-for="${confession.id}"><span class="comments-loading">Chargement des commentaires...</span></div>
-      <form class="comment-form" hidden><input name="content" maxlength="1000" placeholder="Écrire un commentaire..." required><button type="submit">Envoyer</button></form>
+
+      <div
+        class="comments-list"
+        data-comments-for="${confession.id}"
+      >
+        <span class="comments-loading">
+          Chargement des commentaires...
+        </span>
+      </div>
+
+      <form
+        class="comment-form"
+        data-confession-id="${confession.id}"
+        hidden
+      >
+        <input
+          type="text"
+          name="content"
+          maxlength="1000"
+          placeholder="Écrire un commentaire..."
+          required
+        >
+
+        <button type="submit">
+          ${icon('send', 17)}
+          <span>Envoyer</span>
+        </button>
+      </form>
+
     </article>
   `).join('');
-  confessions.forEach((confession) => loadComments(confession.id));
+
+  confessions.forEach((confession) => {
+    loadComments(confession.id);
+  });
 }
 
 async function loadComments(confessionId) {
@@ -169,28 +587,99 @@ function renderCoaches(coaches) {
 }
 
 async function loadContent() {
-  const [confessionsResponse, coachesResponse, categoriesResponse] = await Promise.all([
-    fetch(`/api/confessions?${new URLSearchParams({ ...(selectedCategory ? { category: selectedCategory } : {}), ...(confessionSearch?.value ? { search: confessionSearch.value } : {}) })}`),
-    fetch('/api/coaches'),
-    fetch('/api/categories')
-  ]);
+  // =========================
+  // CATÉGORIES
+  // =========================
+  try {
+    const categoriesResponse = await fetch('/api/categories');
 
-  if (!confessionsResponse.ok || !coachesResponse.ok || !categoriesResponse.ok) {
-    throw new Error('Impossible de charger les données.');
+    if (!categoriesResponse.ok) {
+      throw new Error('Impossible de charger les catégories.');
+    }
+
+    const categories = await categoriesResponse.json();
+
+    console.log('CATÉGORIES REÇUES :', categories);
+
+    if (confessionCategory) {
+      confessionCategory.innerHTML =
+        '<option value="">Choisir une catégorie</option>' +
+        categories.map((category) =>
+          `<option value="${escapeHtml(category.name)}">${escapeHtml(category.name)}</option>`
+        ).join('');
+    }
+  } catch (error) {
+    console.error('Erreur catégories :', error);
   }
 
-  renderConfessions(await confessionsResponse.json());
-  const coaches = await coachesResponse.json();
-  renderCoaches(coaches);
-  const categories = await categoriesResponse.json();
-  if (confessionCategory && !confessionCategory.options[1]) {
-    confessionCategory.innerHTML += categories.map((category) => `<option value="${escapeHtml(category.name)}">${escapeHtml(category.name)}</option>`).join('');
+  // =========================
+  // CONFESSIONS
+  // =========================
+  try {
+    const params = new URLSearchParams();
+
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    }
+
+    if (confessionSearch?.value) {
+      params.set('search', confessionSearch.value);
+    }
+
+    const response = await fetch(`/api/confessions?${params}`);
+
+    if (!response.ok) {
+      throw new Error('Impossible de charger les confessions.');
+    }
+
+    const confessions = await response.json();
+
+    renderConfessions(confessions);
+  } catch (error) {
+    console.error('Erreur confessions :', error);
   }
-  if (coachSpecialty && !coachSpecialty.options[1]) {
-    coachSpecialty.innerHTML += [...new Set(coaches.flatMap((coach) => coach.specialties || []))].map((specialty) => `<option value="${escapeHtml(specialty)}">${escapeHtml(specialty)}</option>`).join('');
-  }
-  if (confessionCoach) {
-    confessionCoach.innerHTML = '<option value="">Aucun coach</option>' + coaches.map((coach) => `<option value="${coach.id}">${escapeHtml(coach.name)} — ${coach.rating} ★</option>`).join('');
+
+  // =========================
+  // COACHS
+  // =========================
+  try {
+    const coachesResponse = await fetch('/api/coaches');
+
+    if (!coachesResponse.ok) {
+      throw new Error('Impossible de charger les coachs.');
+    }
+
+    const coaches = await coachesResponse.json();
+
+    renderCoaches(coaches);
+
+    if (coachSpecialty && !coachSpecialty.options[1]) {
+      const specialties = [
+        ...new Set(
+          coaches.flatMap((coach) => coach.specialties || [])
+        )
+      ];
+
+      coachSpecialty.innerHTML += specialties
+        .map(
+          (specialty) =>
+            `<option value="${escapeHtml(specialty)}">${escapeHtml(specialty)}</option>`
+        )
+        .join('');
+    }
+
+    if (confessionCoach) {
+      confessionCoach.innerHTML =
+        '<option value="">Aucun coach</option>' +
+        coaches
+          .map(
+            (coach) =>
+              `<option value="${coach.id}">${escapeHtml(coach.name)} — ${coach.rating} ★</option>`
+          )
+          .join('');
+    }
+  } catch (error) {
+    console.error('Erreur coachs :', error);
   }
 }
 
@@ -281,46 +770,297 @@ forgotPasswordLink?.addEventListener('click', (event) => {
 googleLoginButton?.addEventListener('click', () => showToast('La connexion Google nécessite la configuration OAuth du projet.', 'info', 'Connexion Google'));
 
 document.addEventListener('click', async (event) => {
-  const button = event.target.closest('.like-button, .favorite-button, .comment-button');
+  if (!(event.target instanceof Element)) return;
+
+  // ─────────────────────────────────────
+  // Actions sur les commentaires
+  // ─────────────────────────────────────
+
+  const commentLikeButton = event.target.closest(
+    '.comment-like-button'
+  );
+
+  if (commentLikeButton) {
+    const comment = commentLikeButton.closest(
+      '[data-comment-id]'
+    );
+
+    const card = comment?.closest(
+      '[data-confession-id]'
+    );
+
+    if (!comment || !card) return;
+
+    const confessionId = card.dataset.confessionId;
+    const commentId = comment.dataset.commentId;
+
+    if (!await getCurrentUser()) {
+      showAuthActionModal();
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/confessions/${confessionId}/comments/${commentId}/like`,
+        {
+          method: 'POST'
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || 'Action impossible.'
+        );
+      }
+
+      commentLikeButton.classList.toggle(
+        'active',
+        data.liked
+      );
+
+      const count = commentLikeButton.querySelector(
+        '.comment-like-count'
+      );
+
+      if (count) {
+        count.textContent = data.likes_count;
+      }
+
+    } catch (error) {
+      showToast(
+        error.message,
+        'error',
+        'Action impossible'
+      );
+    }
+
+    return;
+  }
+
+  // ─────────────────────────────────────
+  // Bouton "Répondre"
+  // ─────────────────────────────────────
+
+  const replyButton = event.target.closest(
+    '.reply-button'
+  );
+
+  if (replyButton) {
+    const comment = replyButton.closest(
+      '[data-comment-id]'
+    );
+
+    if (!comment) return;
+
+    if (!await getCurrentUser()) {
+      showAuthActionModal();
+      return;
+    }
+
+    const replyForm = comment.querySelector(
+      '.reply-form'
+    );
+
+    if (!replyForm) return;
+
+    replyForm.hidden = !replyForm.hidden;
+
+    if (!replyForm.hidden) {
+      const input = replyForm.querySelector(
+        'input[name="content"]'
+      );
+
+      if (input) {
+        input.focus();
+      }
+    }
+
+    return;
+  }
+
+  // ─────────────────────────────────────
+  // Actions sur les confessions
+  // ─────────────────────────────────────
+
+  const button = event.target.closest(
+    '.like-button, .favorite-button, .comment-button'
+  );
+
   if (!button) return;
-  const card = button.closest('[data-confession-id]');
+
+  const card = button.closest(
+    '[data-confession-id]'
+  );
+
+  if (!card) return;
+
   const id = card.dataset.confessionId;
+
   if (!await getCurrentUser()) {
     showAuthActionModal();
     return;
   }
+
+  // Ouvrir / fermer le formulaire de commentaire
   if (button.classList.contains('comment-button')) {
-    card.querySelector('.comment-form').hidden = !card.querySelector('.comment-form').hidden;
+    const form = card.querySelector(
+      '.comment-form'
+    );
+
+    if (!form) return;
+
+    form.hidden = !form.hidden;
+
+    if (!form.hidden) {
+      const input = form.querySelector(
+        'input[name="content"]'
+      );
+
+      if (input) {
+        input.focus();
+      }
+    }
+
     return;
   }
-  const endpoint = button.classList.contains('like-button') ? 'like' : 'favorite';
+
+  // Like ou favori
+  const endpoint = button.classList.contains(
+    'like-button'
+  )
+    ? 'like'
+    : 'favorite';
+
   try {
-    const response = await fetch(`/api/confessions/${id}/${endpoint}`, { method: 'POST' });
+    const response = await fetch(
+      `/api/confessions/${id}/${endpoint}`,
+      {
+        method: 'POST'
+      }
+    );
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
-    button.classList.toggle('active', endpoint === 'like' ? data.liked : data.favorite);
-    if (endpoint === 'like') button.querySelector('span').textContent = data.likes_count;
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Action impossible.'
+      );
+    }
+
+    if (endpoint === 'like') {
+      button.classList.toggle(
+        'active',
+        data.liked
+      );
+
+      const count = button.querySelector('span');
+
+      if (count) {
+        count.textContent =
+          data.likes_count;
+      }
+    } else {
+      button.classList.toggle(
+        'active',
+        data.favorite
+      );
+    }
+
   } catch (error) {
-    showToast(error.message, 'error', 'Action impossible');
+    showToast(
+      error.message,
+      'error',
+      'Action impossible'
+    );
   }
 });
 
 document.addEventListener('submit', async (event) => {
-  if (!event.target.matches('.comment-form')) return;
+  if (
+    !(event.target instanceof HTMLFormElement) ||
+    !event.target.matches('.comment-form, .reply-form')
+  ) {
+    return;
+  }
+
   event.preventDefault();
+
   if (!await getCurrentUser()) {
     showAuthActionModal();
     return;
   }
+
   const form = event.target;
-  const id = form.closest('[data-confession-id]').dataset.confessionId;
-  const response = await fetch(`/api/confessions/${id}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: form.elements.content.value }) });
-  const data = await response.json();
-  if (!response.ok) return showToast(data.error, 'error', 'Commentaire impossible');
-  form.reset();
-  form.hidden = true;
-  showToast('Votre commentaire est maintenant visible par la communauté.', 'success', 'Commentaire publié');
-  await loadContent();
+  const card = form.closest('[data-confession-id]');
+
+  if (!card) return;
+
+  const confessionId = card.dataset.confessionId;
+  const input = form.elements.content;
+
+  if (!input) return;
+
+  const content = input.value.trim();
+
+  if (!content) {
+    return;
+  }
+
+  const parentCommentId = form.classList.contains('reply-form')
+    ? Number(form.dataset.parentCommentId)
+    : null;
+
+  try {
+    const response = await fetch(
+      `/api/confessions/${confessionId}/comments`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content,
+          parentCommentId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Commentaire impossible.'
+      );
+    }
+
+    form.reset();
+    form.hidden = true;
+
+    showToast(
+      form.classList.contains('reply-form')
+        ? 'Votre réponse est maintenant visible par la communauté.'
+        : 'Votre commentaire est maintenant visible par la communauté.',
+      'success',
+      form.classList.contains('reply-form')
+        ? 'Réponse publiée'
+        : 'Commentaire publié'
+    );
+
+    await loadComments(confessionId);
+
+  } catch (error) {
+    console.error(error);
+
+    showToast(
+      error.message,
+      'error',
+      form.classList.contains('reply-form')
+        ? 'Réponse impossible'
+        : 'Commentaire impossible'
+    );
+  }
 });
 
 showSignupLink?.addEventListener('click', (event) => {

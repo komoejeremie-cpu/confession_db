@@ -81,9 +81,1043 @@ h1 span{background:linear-gradient(90deg,#d96125,#8b78ce);-webkit-background-cli
 .account-choice{border:1px solid var(--line);border-radius:15px;padding:14px 16px;margin-bottom:12px}.account-choice legend{padding:0 6px;font-size:13px;font-weight:700}.account-choice label{display:inline-flex;align-items:center;gap:8px;margin:4px 18px 4px 0;font-weight:500}.account-choice input{width:auto;display:inline;margin:0}.coach-register-fields textarea{display:block;width:100%;min-height:100px;border:1px solid #ded5ce;border-radius:15px;padding:14px 16px;margin-top:8px;resize:vertical}
 .admin-label{font-weight:700;color:#ef741b}.admin-shell{max-width:1250px;margin:auto;padding:70px 32px}.admin-shell .profile-heading{margin-bottom:28px}.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}.admin-stats article{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}.admin-stats strong{display:block;font:40px "DM Serif Display",Georgia,serif}.admin-stats span{color:var(--muted);font-size:14px}.admin-panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:25px;margin-top:22px}.admin-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.admin-section-heading h2{font-size:30px}.admin-list{display:grid;gap:12px}.admin-item{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border:1px solid var(--line);border-radius:14px;padding:16px}.admin-item strong,.admin-item small,.admin-item p{display:block}.admin-item small{color:var(--muted);font-size:13px;margin-top:4px}.admin-item p{margin-top:10px;color:var(--muted);max-width:680px}.admin-item-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.admin-item-actions select{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}.admin-item-actions .btn{padding:9px 13px}.admin-page{background:#fcfaf7}
 .admin-confirm{position:fixed;inset:0;z-index:110;display:grid;place-items:center;background:rgba(33,27,24,.35);padding:20px}.admin-confirm[hidden]{display:none}.admin-confirm>div{background:#fff;border-radius:18px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(40,30,20,.2)}.admin-confirm p{margin-bottom:20px}.admin-confirm div div{display:flex;justify-content:flex-end;gap:10px}
-@media(max-width:1050px){.nav-links{gap:0}.nav-links a{padding:10px}.nav-actions{gap:12px}.hero{grid-template-columns:1fr}.hero-art{max-width:650px;width:100%;margin:auto}.coach-filters{grid-template-columns:1fr 1fr}.confession-grid,.coach-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:760px){.navbar{height:auto;padding:15px 20px;flex-wrap:wrap;gap:14px}.nav-links{order:3;width:100%;overflow:auto;justify-content:flex-start;margin:0}.nav-actions .login-link{display:none}.nav-actions .btn{padding:10px 15px;font-size:13px}.brand{font-size:23px}.brand-icon{width:38px;height:38px}.section,.page-section{padding:60px 20px}h1{font-size:50px}.lead{font-size:17px}.trust-row{flex-direction:column;gap:10px;margin-top:28px}.hero-art{height:390px}.bubble-orange,.bubble-white{width:135px;height:115px}.bubble-cream,.bubble-purple{width:130px;height:110px}.anonymous-card{left:15px;right:15px;bottom:-35px}.section-heading h2,.center-heading h2{font-size:44px}.search-line{flex-direction:column;align-items:stretch}.confession-grid,.coach-grid{grid-template-columns:1fr}.coach-filters{grid-template-columns:1fr}.login-section{grid-template-columns:1fr}.login-panel{padding:25px 20px}.login-content{margin:45px auto}.login-visual{min-height:520px}.mini-art{width:90%;height:300px}.footer{flex-direction:column;text-align:center}.form-card{padding:28px 20px}.form-card h2{font-size:38px}}
-.admin-stats{grid-template-columns:repeat(3,1fr)}
-@media(max-width:760px){.admin-shell{padding:48px 20px}.admin-stats{grid-template-columns:1fr}.admin-item{flex-direction:column}.admin-item-actions{justify-content:flex-start}.admin-section-heading{align-items:flex-start;flex-direction:column}.auth-card{padding:28px 20px}.auth-card h1{font-size:40px}}
-.admin-password-form{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:end}.admin-password-form label{font-size:13px;font-weight:700}.admin-password-form input{display:block;width:100%;border:1px solid #ded5ce;border-radius:12px;padding:12px 14px;margin-top:7px}.admin-password-form .btn{height:48px}
-@media(max-width:760px){.admin-password-form{grid-template-columns:1fr}}
+/* =========================================================
+   RESPONSIVE GLOBAL
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   GRANDS ÉCRANS
+   --------------------------------------------------------- */
+
+@media (min-width: 1441px) {
+  .navbar {
+    padding-left: 7vw;
+    padding-right: 7vw;
+  }
+
+  .section {
+    padding-left: 8vw;
+    padding-right: 8vw;
+  }
+
+  .page-section {
+    padding-left: 7vw;
+    padding-right: 7vw;
+  }
+
+  .hero {
+    max-width: 1700px;
+    margin: 0 auto;
+  }
+
+  .confession-grid,
+  .coach-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* ---------------------------------------------------------
+   DESKTOP / LAPTOP
+   --------------------------------------------------------- */
+
+@media (max-width: 1200px) {
+  .navbar {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .nav-links {
+    margin-left: 20px;
+  }
+
+  .nav-links a {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .nav-actions {
+    gap: 15px;
+  }
+
+  .section {
+    padding-left: 45px;
+    padding-right: 45px;
+  }
+
+  .page-section {
+    padding-left: 45px;
+    padding-right: 45px;
+  }
+
+  h1 {
+    font-size: 66px;
+  }
+
+  .hero {
+    gap: 35px;
+  }
+
+  .hero-art {
+    height: 500px;
+  }
+
+  .confession-card,
+  .coach-card {
+    padding: 24px;
+  }
+
+  .coach-filters {
+    grid-template-columns: 1.5fr 1fr 1fr;
+  }
+
+  .profile-shell,
+  .admin-shell {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   TABLETTES
+   --------------------------------------------------------- */
+
+@media (max-width: 1050px) {
+  .navbar {
+    height: auto;
+    min-height: 76px;
+    padding: 14px 25px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .brand {
+    font-size: 24px;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-links a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    max-width: 850px;
+  }
+
+  .hero-art {
+    width: min(100%, 700px);
+    margin: 25px auto 0;
+  }
+
+  .confession-grid,
+  .coach-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coach-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coach-filters > *:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .login-section {
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel {
+    min-height: auto;
+  }
+
+  .login-visual {
+    min-height: 600px;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-application-panel {
+    grid-column: auto;
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-password-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  html {
+    overflow-x: hidden;
+  }
+
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* NAVIGATION */
+
+  .navbar {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .brand {
+    font-size: 21px;
+    gap: 8px;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+  }
+
+  .nav-actions {
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .nav-actions .login-link {
+    display: none;
+  }
+
+  .nav-actions .btn {
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+
+  .nav-links {
+    gap: 3px;
+    margin: 0;
+    padding-bottom: 2px;
+  }
+
+  .nav-links a {
+    padding: 9px 13px;
+    font-size: 14px;
+  }
+
+
+  /* SECTIONS */
+
+  .section,
+  .page-section {
+    padding: 55px 18px;
+  }
+
+  .form-section {
+    padding: 55px 16px;
+  }
+
+  .hero {
+    min-height: auto;
+    gap: 35px;
+  }
+
+  h1 {
+    font-size: clamp(42px, 12vw, 55px);
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+  }
+
+  .lead {
+    font-size: 16px;
+    line-height: 1.55;
+    margin-bottom: 25px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+  }
+
+  .hero .eyebrow {
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    flex: 1 1 180px;
+  }
+
+  .trust-row {
+    flex-direction: column;
+    gap: 9px;
+    margin-top: 28px;
+  }
+
+
+  /* HERO ART */
+
+  .hero-art {
+    height: 350px;
+    border-radius: 25px;
+  }
+
+  .bubble-orange {
+    width: 120px;
+    height: 100px;
+    left: 12%;
+  }
+
+  .bubble-white {
+    width: 120px;
+    height: 100px;
+    left: 52%;
+  }
+
+  .bubble-cream {
+    width: 115px;
+    height: 95px;
+    left: 10%;
+  }
+
+  .bubble-purple {
+    width: 120px;
+    height: 100px;
+    left: 52%;
+  }
+
+  .lock-card {
+    width: 70px;
+    height: 74px;
+    left: 42%;
+    top: 42%;
+    font-size: 26px;
+  }
+
+  .heart-float {
+    right: 12%;
+    bottom: 18%;
+    font-size: 28px;
+  }
+
+  .anonymous-card {
+    left: 12px;
+    right: 12px;
+    bottom: -30px;
+    padding: 13px 16px;
+    border-radius: 20px;
+  }
+
+  .eye-off {
+    width: 40px;
+    height: 40px;
+  }
+
+
+  /* TITRES */
+
+  .section-heading,
+  .center-heading {
+    margin-bottom: 32px;
+  }
+
+  .section-heading h2,
+  .center-heading h2 {
+    font-size: clamp(36px, 10vw, 46px);
+  }
+
+  .section-heading p,
+  .center-heading p {
+    font-size: 16px;
+  }
+
+  .center-heading {
+    margin-bottom: 45px;
+  }
+
+
+  /* RECHERCHE */
+
+  .search-line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-box,
+  .filter-btn {
+    width: 100%;
+  }
+
+  .search-box {
+    min-height: 54px;
+    font-size: 16px;
+  }
+
+  .filter-btn {
+    min-height: 52px;
+  }
+
+  .chips {
+    gap: 7px;
+    margin-bottom: 38px;
+  }
+
+  .chip {
+    padding: 8px 13px;
+    font-size: 13px;
+  }
+
+  .results-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+
+  /* CONFESSIONS / COACHS */
+
+  .confession-grid,
+  .coach-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .confession-card,
+  .coach-card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .card-top {
+    align-items: flex-start;
+  }
+
+  .anon {
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .anon > span,
+  .anon-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .anon strong {
+    font-size: 14px;
+  }
+
+  .anon small {
+    font-size: 11px;
+  }
+
+  .tag {
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .confession-card h3 {
+    font-size: 23px;
+    margin-top: 20px;
+  }
+
+  .confession-card p {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+
+  /* ACTIONS */
+
+  .card-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .interaction-button {
+    min-height: 38px;
+    padding: 7px 9px;
+  }
+
+
+  /* COMMENTAIRES */
+
+  .comments-list {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .comment-item {
+    display: flex;
+    gap: 8px;
+  }
+
+  .comment-body {
+    min-width: 0;
+  }
+
+  .comment-header {
+    gap: 5px;
+  }
+
+  .comment-content {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .comment-actions {
+    flex-wrap: wrap;
+  }
+
+  .comment-action {
+    min-height: 36px;
+    padding: 6px 8px;
+  }
+
+  .comment-children {
+    margin-left: 0;
+    padding-left: 11px;
+  }
+
+  .comment-form,
+  .reply-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .comment-form input,
+  .reply-form input {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .comment-form button,
+  .reply-form button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+
+  /* COACHS */
+
+  .coach-filters {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 25px 0 45px;
+  }
+
+  .coach-filters > *:first-child {
+    grid-column: auto;
+  }
+
+  .coach-head {
+    align-items: flex-start;
+  }
+
+  .coach-photo {
+    width: 75px;
+    height: 75px;
+    border-radius: 20px;
+  }
+
+
+  /* HOW */
+
+  .timeline {
+    width: 100%;
+  }
+
+  .timeline:before {
+    left: 25px;
+  }
+
+  .step {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .step-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 21px;
+  }
+
+  .step > div:last-child {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .step h3 {
+    font-size: 23px;
+  }
+
+
+  /* FORMULAIRES */
+
+  .form-card {
+    padding: 25px 18px;
+    border-radius: 22px;
+  }
+
+  .form-card h2 {
+    font-size: 37px;
+  }
+
+  .form-card input,
+  .form-card textarea,
+  .form-card select {
+    font-size: 16px;
+  }
+
+  .form-card textarea {
+    min-height: 140px;
+  }
+
+
+  /* LOGIN */
+
+  .login-section {
+    min-height: auto;
+  }
+
+  .login-panel {
+    padding: 25px 18px;
+  }
+
+  .login-content {
+    margin: 35px auto;
+  }
+
+  .login-content h2,
+  .login-visual h2 {
+    font-size: 38px;
+  }
+
+  .login-content > p,
+  .login-visual p {
+    font-size: 16px;
+  }
+
+  .login-options {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .login-visual {
+    min-height: 430px;
+    padding: 35px 18px;
+  }
+
+  .mini-art {
+    width: 100%;
+    max-width: 390px;
+    height: 270px;
+    margin-bottom: 25px;
+  }
+
+
+  /* PROFIL */
+
+  .profile-shell,
+  .admin-shell {
+    padding: 50px 18px;
+  }
+
+  .profile-heading {
+    margin-bottom: 28px;
+  }
+
+  .profile-heading h1 {
+    font-size: 46px;
+  }
+
+  .profile-heading p {
+    font-size: 16px;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .profile-panel {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+
+  .profile-panel h2 {
+    font-size: 28px;
+  }
+
+  .profile-panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-form-actions {
+    flex-direction: column;
+  }
+
+  .profile-post {
+    padding: 15px;
+  }
+
+  .profile-post-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+
+  /* COACH APPLICATION */
+
+  .coach-application-panel textarea {
+    min-height: 120px;
+  }
+
+
+  /* ADMIN */
+
+  .admin-shell {
+    padding-top: 45px;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .admin-stats article {
+    padding: 18px;
+  }
+
+  .admin-stats strong {
+    font-size: 34px;
+  }
+
+  .admin-panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .admin-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-section-heading h2 {
+    font-size: 27px;
+  }
+
+  .admin-item {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .admin-item p {
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-item-actions .btn,
+  .admin-item-actions select {
+    min-height: 42px;
+  }
+
+  .admin-password-form {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* AUTH */
+
+  .auth-page {
+    padding: 20px 14px;
+  }
+
+  .auth-card {
+    padding: 25px 18px;
+    border-radius: 22px;
+  }
+
+  .auth-card h1 {
+    font-size: 39px;
+  }
+
+
+  /* FOOTER */
+
+  .footer {
+    padding: 28px 18px;
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+
+  /* TOAST */
+
+  .app-toast {
+    left: 14px;
+    right: 14px;
+    top: 14px;
+    min-width: 0;
+    width: auto;
+    max-width: none;
+    padding: 14px 42px 14px 15px;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   TRÈS PETITS TÉLÉPHONES
+   --------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .navbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .brand {
+    font-size: 19px;
+  }
+
+  .brand-icon {
+    width: 33px;
+    height: 33px;
+    font-size: 17px;
+  }
+
+  .nav-actions .btn {
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+
+  .section,
+  .page-section {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  h1 {
+    font-size: clamp(38px, 12vw, 48px);
+  }
+
+  .hero-art {
+    height: 300px;
+  }
+
+  .anonymous-card {
+    bottom: -35px;
+    padding: 11px 13px;
+  }
+
+  .confession-card,
+  .coach-card {
+    padding: 17px;
+    border-radius: 19px;
+  }
+
+  .card-top {
+    gap: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+
+  .confession-card h3 {
+    font-size: 21px;
+  }
+
+  .confession-card p {
+    font-size: 14px;
+  }
+
+  .interaction-button {
+    font-size: 13px;
+    padding: 6px 7px;
+  }
+
+  .comment-action {
+    font-size: 12px;
+  }
+
+  .comment-children {
+    padding-left: 8px;
+  }
+
+  .step {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .step-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .step > div:last-child {
+    padding: 16px;
+  }
+
+  .step h3 {
+    font-size: 21px;
+  }
+
+  .form-card h2 {
+    font-size: 33px;
+  }
+
+  .profile-heading h1 {
+    font-size: 40px;
+  }
+
+  .admin-shell,
+  .profile-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+/* =========================================================
+   FORMULAIRE MOT DE PASSE ADMIN
+   ========================================================= */
+
+.admin-password-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 24px;
+}
+
+.admin-password-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.admin-password-form input {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #ded5ce;
+  border-radius: 14px;
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.admin-password-form input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(239, 116, 27, .12);
+}
+
+.admin-password-form .btn {
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   TOUT PETIT ÉCRAN : 320px
+   --------------------------------------------------------- */
+
+@media (max-width: 340px) {
+  .brand {
+    font-size: 17px;
+  }
+
+  .nav-actions .btn {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .nav-links a {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .section,
+  .page-section {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .confession-card,
+  .coach-card {
+    padding: 14px;
+  }
+
+  .card-actions {
+    gap: 2px;
+  }
+
+  .interaction-button {
+    padding: 5px 5px;
+    font-size: 12px;
+  }
+
+  .comment-item {
+    gap: 5px;
+  }
+
+  .comment-avatar {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .comment-action {
+    padding: 5px 6px;
+  }
+
+  .profile-panel,
+  .admin-panel {
+    padding: 15px;
+  }
+}

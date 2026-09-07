@@ -5,6 +5,10 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
+/* =========================================================
+   UTILITAIRES AUTHENTIFICATION
+   ========================================================= */
+
 function getSessionToken(request) {
   const cookieHeader = request.headers.cookie || '';
 
@@ -37,128 +41,75 @@ async function getOptionalUser(request) {
   return rows[0] || null;
 }
 
+/* =========================================================
+   CONFESSIONS — PUBLICS
+   ========================================================= */
+
 router.get('/', async (request, response, next) => {
   try {
-    const {
-      category,
-      search,
-      limit = 20,
-      offset = 0
-    } = request.query;
+    const category = request.query.category?.trim() || '';
+    const search = request.query.search?.trim() || '';
+
+    let sql = `
+      SELECT
+        confessions.id,
+        confessions.title,
+        confessions.content,
+        confessions.created_at,
+
+        categories.name AS category,
+
+        (
+          SELECT COUNT(*)
+          FROM confession_likes
+          WHERE confession_likes.confession_id = confessions.id
+        ) AS likes_count,
+
+        (
+          SELECT COUNT(*)
+          FROM confession_comments
+          WHERE confession_comments.confession_id = confessions.id
+        ) AS comments_count,
+
+        (
+          SELECT COUNT(*)
+          FROM confession_favorites
+          WHERE confession_favorites.confession_id = confessions.id
+        ) AS favorites_count
+
+      FROM confessions
+
+      INNER JOIN categories
+        ON categories.id = confessions.category_id
+
+      WHERE 1 = 1
+    `;
 
     const values = [];
-    const filters = [];
 
-    if (
-      category &&
-      category !== 'Toutes'
-    ) {
+    if (category) {
+      sql += ` AND categories.name = ?`;
       values.push(category);
-
-      filters.push(
-        'categories.name = ?'
-      );
     }
 
-    if (search?.trim()) {
-      const searchValue = `%${search.trim()}%`;
+    if (search) {
+      sql += `
+        AND (
+          confessions.title LIKE ?
+          OR confessions.content LIKE ?
+        )
+      `;
 
-      filters.push(
-        `(confessions.title LIKE ?
-          OR confessions.content LIKE ?)`
-      );
+      const searchValue = `%${search}%`;
 
-      values.push(
-        searchValue,
-        searchValue
-      );
+      values.push(searchValue, searchValue);
     }
 
-    const parsedLimit = Number(limit);
-    const parsedOffset = Number(offset);
+    sql += `
+      ORDER BY confessions.created_at DESC
+    `;
 
-    const safeLimit = Math.min(
-      Math.max(
-        Number.isFinite(parsedLimit)
-          ? parsedLimit
-          : 20,
-        1
-      ),
-      100
-    );
-
-    const safeOffset = Math.max(
-      Number.isFinite(parsedOffset)
-        ? parsedOffset
-        : 0,
-      0
-    );
-
-    const where = filters.length
-      ? `WHERE ${filters.join(' AND ')}`
-      : '';
-
-    const user = await getOptionalUser(request);
-
-    const userId = user?.id || 0;
-
-    const [rows] = await query(
-      `SELECT
-         confessions.id,
-         confessions.title,
-         confessions.content,
-         categories.name AS category,
-         confessions.created_at,
-
-         (
-           SELECT COUNT(*)
-           FROM confession_likes
-           WHERE confession_id = confessions.id
-         ) AS likes_count,
-
-         (
-           SELECT COUNT(*)
-           FROM confession_comments
-           WHERE confession_id = confessions.id
-         ) AS comments_count,
-
-         (
-           SELECT COUNT(*)
-           FROM confession_favorites
-           WHERE confession_id = confessions.id
-         ) AS favorites_count,
-
-         EXISTS (
-           SELECT 1
-           FROM confession_likes
-           WHERE confession_id = confessions.id
-             AND user_id = ?
-         ) AS liked,
-
-         EXISTS (
-           SELECT 1
-           FROM confession_favorites
-           WHERE confession_id = confessions.id
-             AND user_id = ?
-         ) AS favorite
-
-       FROM confessions
-       INNER JOIN categories
-         ON categories.id = confessions.category_id
-
-       ${where}
-
-       ORDER BY confessions.created_at DESC
-
-       LIMIT ? OFFSET ?`,
-      [
-        userId,
-        userId,
-        ...values,
-        safeLimit,
-        safeOffset
-      ]
-    );
+    const [rows] = await query(sql, values);
 
     response.json(
       rows.map((row) => ({
@@ -166,14 +117,108 @@ router.get('/', async (request, response, next) => {
         likes_count: Number(row.likes_count || 0),
         comments_count: Number(row.comments_count || 0),
         favorites_count: Number(row.favorites_count || 0),
-        liked: Boolean(row.liked),
-        favorite: Boolean(row.favorite)
+        liked: false,
+        favorite: false
       }))
     );
+
   } catch (error) {
     next(error);
   }
 });
+
+
+/* =========================================================
+   COMMENTAIRES — PUBLICS
+   ========================================================= */
+
+router.get('/:id/comments', async (request, response, next) => {
+  try {
+    const confessionId = Number(request.params.id);
+
+    if (
+      !Number.isInteger(confessionId) ||
+      confessionId < 1
+    ) {
+      return response.status(400).json({
+        error: 'Confession invalide.'
+      });
+    }
+
+    /*
+     * Le visiteur peut voir les commentaires sans être connecté.
+     * Si un utilisateur est connecté, on récupère également
+     * ses likes sur les commentaires.
+     */
+    const user = await getOptionalUser(request);
+    const userId = user?.id || 0;
+
+    const [rows] = await query(
+      `SELECT
+         confession_comments.id,
+         confession_comments.confession_id,
+         confession_comments.user_id,
+         confession_comments.parent_comment_id,
+         confession_comments.content,
+         confession_comments.created_at,
+
+         users.name AS author_name,
+
+         (
+           SELECT COUNT(*)
+           FROM comment_likes
+           WHERE comment_likes.comment_id =
+                 confession_comments.id
+         ) AS likes_count,
+
+         EXISTS (
+           SELECT 1
+           FROM comment_likes
+           WHERE comment_likes.comment_id =
+                 confession_comments.id
+             AND comment_likes.user_id = ?
+         ) AS liked
+
+       FROM confession_comments
+
+       INNER JOIN users
+         ON users.id = confession_comments.user_id
+
+       WHERE confession_comments.confession_id = ?
+
+       ORDER BY confession_comments.created_at ASC`,
+      [
+        userId,
+        confessionId
+      ]
+    );
+
+    response.json(
+      rows.map((row) => ({
+        ...row,
+
+        parent_comment_id:
+          row.parent_comment_id
+            ? Number(row.parent_comment_id)
+            : null,
+
+        likes_count:
+          Number(row.likes_count || 0),
+
+        liked:
+          Boolean(row.liked)
+      }))
+    );
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/* =========================================================
+   CRÉER UNE CONFESSION
+   ========================================================= */
 
 router.post('/', requireAuth, async (request, response, next) => {
   try {
@@ -194,19 +239,22 @@ router.post('/', requireAuth, async (request, response, next) => {
       !cleanCategory
     ) {
       return response.status(400).json({
-        error: 'Titre, catégorie et confession sont obligatoires.'
+        error:
+          'Titre, catégorie et confession sont obligatoires.'
       });
     }
 
     if (cleanTitle.length > 200) {
       return response.status(400).json({
-        error: 'Le titre est limité à 200 caractères.'
+        error:
+          'Le titre est limité à 200 caractères.'
       });
     }
 
     if (cleanContent.length > 10000) {
       return response.status(400).json({
-        error: 'La confession est limitée à 10000 caractères.'
+        error:
+          'La confession est limitée à 10000 caractères.'
       });
     }
 
@@ -220,13 +268,17 @@ router.post('/', requireAuth, async (request, response, next) => {
 
     if (!categoryRows.length) {
       return response.status(400).json({
-        error: 'Cette catégorie n’existe pas dans la base.'
+        error:
+          'Cette catégorie n’existe pas dans la base.'
       });
     }
 
     let validCoachId = null;
 
-    if (coachId !== null && coachId !== '') {
+    if (
+      coachId !== null &&
+      coachId !== ''
+    ) {
       const numericCoachId = Number(coachId);
 
       if (
@@ -249,7 +301,8 @@ router.post('/', requireAuth, async (request, response, next) => {
 
       if (!coachRows.length) {
         return response.status(400).json({
-          error: 'Coach invalide ou indisponible.'
+          error:
+            'Coach invalide ou indisponible.'
         });
       }
 
@@ -287,74 +340,111 @@ router.post('/', requireAuth, async (request, response, next) => {
       liked: false,
       favorite: false
     });
+
   } catch (error) {
     next(error);
   }
 });
 
-router.get('/mine', requireAuth, async (request, response, next) => {
-  try {
-    const [rows] = await query(
-      `SELECT confessions.id, confessions.title, confessions.content,
-              categories.name AS category, confessions.created_at,
-              (SELECT COUNT(*) FROM confession_likes WHERE confession_id = confessions.id) AS likes_count,
-              (SELECT COUNT(*) FROM confession_comments WHERE confession_id = confessions.id) AS comments_count
-       FROM confessions
-       INNER JOIN categories ON categories.id = confessions.category_id
-       WHERE confessions.user_id = ?
-       ORDER BY confessions.created_at DESC`,
-      [request.user.id]
-    );
 
-    response.json(rows.map((row) => ({
-      ...row,
-      likes_count: Number(row.likes_count || 0),
-      comments_count: Number(row.comments_count || 0)
-    })));
-  } catch (error) {
-    next(error);
+/* =========================================================
+   MES CONFESSIONS
+   ========================================================= */
+
+router.get(
+  '/mine',
+  requireAuth,
+  async (request, response, next) => {
+    try {
+      const [rows] = await query(
+        `SELECT
+           confessions.id,
+           confessions.title,
+           confessions.content,
+           categories.name AS category,
+           confessions.created_at,
+
+           (
+             SELECT COUNT(*)
+             FROM confession_likes
+             WHERE confession_id = confessions.id
+           ) AS likes_count,
+
+           (
+             SELECT COUNT(*)
+             FROM confession_comments
+             WHERE confession_id = confessions.id
+           ) AS comments_count
+
+         FROM confessions
+
+         INNER JOIN categories
+           ON categories.id = confessions.category_id
+
+         WHERE confessions.user_id = ?
+
+         ORDER BY confessions.created_at DESC`,
+        [request.user.id]
+      );
+
+      response.json(
+        rows.map((row) => ({
+          ...row,
+
+          likes_count:
+            Number(row.likes_count || 0),
+
+          comments_count:
+            Number(row.comments_count || 0)
+        }))
+      );
+
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
-router.post('/:id/like', requireAuth, async (request, response, next) => {
-  try {
-    const confessionId =
-      Number(request.params.id);
 
-    if (
-      !Number.isInteger(confessionId) ||
-      confessionId < 1
-    ) {
-      return response.status(400).json({
-        error: 'Confession invalide.'
-      });
-    }
+/* =========================================================
+   LIKE D'UNE CONFESSION
+   ========================================================= */
 
-    const [confessionRows] = await query(
-      'SELECT id FROM confessions WHERE id = ? LIMIT 1',
-      [confessionId]
-    );
+router.post(
+  '/:id/like',
+  requireAuth,
+  async (request, response, next) => {
+    try {
+      const confessionId =
+        Number(request.params.id);
 
-    if (!confessionRows.length) {
-      return response.status(404).json({
-        error: 'Confession introuvable.'
-      });
-    }
+      if (
+        !Number.isInteger(confessionId) ||
+        confessionId < 1
+      ) {
+        return response.status(400).json({
+          error: 'Confession invalide.'
+        });
+      }
 
-    const [existing] = await query(
-      `SELECT 1
-       FROM confession_likes
-       WHERE confession_id = ?
-         AND user_id = ?`,
-      [
-        confessionId,
-        request.user.id
-      ]
-    );
+      const [confessionRows] = await query(
+        `SELECT id
+         FROM confessions
+         WHERE id = ?
+         LIMIT 1`,
+        [confessionId]
+      );
 
-    if (existing.length) {
-      await query(
-        `DELETE FROM confession_likes
+      if (!confessionRows.length) {
+        return response.status(404).json({
+          error:
+            'Confession introuvable.'
+        });
+      }
+
+      const [existing] = await query(
+        `SELECT 1
+         FROM confession_likes
          WHERE confession_id = ?
            AND user_id = ?`,
         [
@@ -362,73 +452,91 @@ router.post('/:id/like', requireAuth, async (request, response, next) => {
           request.user.id
         ]
       );
-    } else {
-      await query(
-        `INSERT INTO confession_likes
-          (confession_id, user_id)
-         VALUES (?, ?)`,
-        [
-          confessionId,
-          request.user.id
-        ]
+
+      if (existing.length) {
+        await query(
+          `DELETE FROM confession_likes
+           WHERE confession_id = ?
+             AND user_id = ?`,
+          [
+            confessionId,
+            request.user.id
+          ]
+        );
+      } else {
+        await query(
+          `INSERT INTO confession_likes
+            (
+              confession_id,
+              user_id
+            )
+           VALUES (?, ?)`,
+          [
+            confessionId,
+            request.user.id
+          ]
+        );
+      }
+
+      const [[count]] = await query(
+        `SELECT COUNT(*) AS likes_count
+         FROM confession_likes
+         WHERE confession_id = ?`,
+        [confessionId]
       );
+
+      response.json({
+        liked: !existing.length,
+        likes_count:
+          Number(count.likes_count || 0)
+      });
+
+    } catch (error) {
+      next(error);
     }
-
-    const [[count]] = await query(
-      `SELECT COUNT(*) AS likes_count
-       FROM confession_likes
-       WHERE confession_id = ?`,
-      [confessionId]
-    );
-
-    response.json({
-      liked: !existing.length,
-      likes_count: Number(count.likes_count)
-    });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
-router.post('/:id/favorite', requireAuth, async (request, response, next) => {
-  try {
-    const confessionId =
-      Number(request.params.id);
 
-    if (
-      !Number.isInteger(confessionId) ||
-      confessionId < 1
-    ) {
-      return response.status(400).json({
-        error: 'Confession invalide.'
-      });
-    }
+/* =========================================================
+   FAVORI D'UNE CONFESSION
+   ========================================================= */
 
-    const [confessionRows] = await query(
-      'SELECT id FROM confessions WHERE id = ? LIMIT 1',
-      [confessionId]
-    );
+router.post(
+  '/:id/favorite',
+  requireAuth,
+  async (request, response, next) => {
+    try {
+      const confessionId =
+        Number(request.params.id);
 
-    if (!confessionRows.length) {
-      return response.status(404).json({
-        error: 'Confession introuvable.'
-      });
-    }
+      if (
+        !Number.isInteger(confessionId) ||
+        confessionId < 1
+      ) {
+        return response.status(400).json({
+          error: 'Confession invalide.'
+        });
+      }
 
-    const [existing] = await query(
-      `SELECT 1
-       FROM confession_favorites
-       WHERE confession_id = ?
-         AND user_id = ?`,
-      [
-        confessionId,
-        request.user.id
-      ]
-    );
+      const [confessionRows] = await query(
+        `SELECT id
+         FROM confessions
+         WHERE id = ?
+         LIMIT 1`,
+        [confessionId]
+      );
 
-    if (existing.length) {
-      await query(
-        `DELETE FROM confession_favorites
+      if (!confessionRows.length) {
+        return response.status(404).json({
+          error:
+            'Confession introuvable.'
+        });
+      }
+
+      const [existing] = await query(
+        `SELECT 1
+         FROM confession_favorites
          WHERE confession_id = ?
            AND user_id = ?`,
         [
@@ -436,118 +544,308 @@ router.post('/:id/favorite', requireAuth, async (request, response, next) => {
           request.user.id
         ]
       );
-    } else {
-      await query(
-        `INSERT INTO confession_favorites
-          (confession_id, user_id)
-         VALUES (?, ?)`,
-        [
-          confessionId,
-          request.user.id
-        ]
-      );
-    }
 
-    response.json({
-      favorite: !existing.length
-    });
-  } catch (error) {
-    next(error);
+      if (existing.length) {
+        await query(
+          `DELETE FROM confession_favorites
+           WHERE confession_id = ?
+             AND user_id = ?`,
+          [
+            confessionId,
+            request.user.id
+          ]
+        );
+      } else {
+        await query(
+          `INSERT INTO confession_favorites
+            (
+              confession_id,
+              user_id
+            )
+           VALUES (?, ?)`,
+          [
+            confessionId,
+            request.user.id
+          ]
+        );
+      }
+
+      response.json({
+        favorite: !existing.length
+      });
+
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
-router.get('/:id/comments', async (request, response, next) => {
-  try {
-    const confessionId =
-      Number(request.params.id);
 
-    if (
-      !Number.isInteger(confessionId) ||
-      confessionId < 1
-    ) {
-      return response.status(400).json({
-        error: 'Confession invalide.'
-      });
-    }
+/* =========================================================
+   AJOUTER UN COMMENTAIRE OU UNE RÉPONSE
+   ========================================================= */
 
-    const [rows] = await query(
-      `SELECT
-         confession_comments.id,
-         confession_comments.content,
-         confession_comments.created_at,
-         users.name AS author_name
-       FROM confession_comments
-       INNER JOIN users
-         ON users.id = confession_comments.user_id
-       WHERE confession_comments.confession_id = ?
-       ORDER BY confession_comments.created_at ASC`,
-      [confessionId]
-    );
+router.post(
+  '/:id/comments',
+  requireAuth,
+  async (request, response, next) => {
+    try {
+      const confessionId =
+        Number(request.params.id);
 
-    response.json(rows);
-  } catch (error) {
-    next(error);
-  }
-});
+      const content =
+        request.body.content?.trim();
 
-router.post('/:id/comments', requireAuth, async (request, response, next) => {
-  try {
-    const confessionId =
-      Number(request.params.id);
+      /*
+       * null = commentaire principal
+       * nombre = réponse à un commentaire
+       */
+      const parentCommentId =
+        request.body.parentCommentId === null ||
+        request.body.parentCommentId === undefined ||
+        request.body.parentCommentId === ''
+          ? null
+          : Number(request.body.parentCommentId);
 
-    const content =
-      request.body.content?.trim();
+      if (
+        !Number.isInteger(confessionId) ||
+        confessionId < 1 ||
+        !content
+      ) {
+        return response.status(400).json({
+          error:
+            'Confession et commentaire sont obligatoires.'
+        });
+      }
 
-    if (
-      !Number.isInteger(confessionId) ||
-      confessionId < 1 ||
-      !content
-    ) {
-      return response.status(400).json({
-        error: 'Confession et commentaire sont obligatoires.'
-      });
-    }
+      if (content.length > 1000) {
+        return response.status(400).json({
+          error:
+            'Le commentaire est limité à 1000 caractères.'
+        });
+      }
 
-    if (content.length > 1000) {
-      return response.status(400).json({
-        error: 'Le commentaire est limité à 1000 caractères.'
-      });
-    }
-
-    const [confessionRows] = await query(
-      'SELECT id FROM confessions WHERE id = ? LIMIT 1',
-      [confessionId]
-    );
-
-    if (!confessionRows.length) {
-      return response.status(404).json({
-        error: 'Confession introuvable.'
-      });
-    }
-
-    const [result] = await query(
-      `INSERT INTO confession_comments
+      if (
+        parentCommentId !== null &&
         (
-          confession_id,
-          user_id,
-          content
+          !Number.isInteger(parentCommentId) ||
+          parentCommentId < 1
         )
-       VALUES (?, ?, ?)`,
-      [
-        confessionId,
-        request.user.id,
-        content
-      ]
-    );
+      ) {
+        return response.status(400).json({
+          error: 'Réponse invalide.'
+        });
+      }
 
-    response.status(201).json({
-      id: result.insertId,
-      content,
-      created_at: new Date().toISOString()
-    });
-  } catch (error) {
-    next(error);
+      /*
+       * Vérifier que la confession existe.
+       */
+      const [confessionRows] = await query(
+        `SELECT id
+         FROM confessions
+         WHERE id = ?
+         LIMIT 1`,
+        [confessionId]
+      );
+
+      if (!confessionRows.length) {
+        return response.status(404).json({
+          error:
+            'Confession introuvable.'
+        });
+      }
+
+      /*
+       * Si c'est une réponse, vérifier que
+       * le commentaire parent appartient bien
+       * à la même confession.
+       */
+      if (parentCommentId !== null) {
+        const [parentRows] = await query(
+          `SELECT id
+           FROM confession_comments
+           WHERE id = ?
+             AND confession_id = ?
+           LIMIT 1`,
+          [
+            parentCommentId,
+            confessionId
+          ]
+        );
+
+        if (!parentRows.length) {
+          return response.status(404).json({
+            error:
+              'Commentaire parent introuvable.'
+          });
+        }
+      }
+
+      /*
+       * Enregistrer le commentaire.
+       */
+      const [result] = await query(
+        `INSERT INTO confession_comments
+          (
+            confession_id,
+            user_id,
+            parent_comment_id,
+            content
+          )
+         VALUES (?, ?, ?, ?)`,
+        [
+          confessionId,
+          request.user.id,
+          parentCommentId,
+          content
+        ]
+      );
+
+      response.status(201).json({
+        id: result.insertId,
+
+        parent_comment_id:
+          parentCommentId,
+
+        content,
+
+        author_name:
+          request.user.name,
+
+        likes_count: 0,
+
+        liked: false,
+
+        created_at:
+          new Date().toISOString()
+      });
+
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
+
+
+/* =========================================================
+   LIKE D'UN COMMENTAIRE
+   ========================================================= */
+
+router.post(
+  '/:id/comments/:commentId/like',
+  requireAuth,
+  async (request, response, next) => {
+    try {
+      const confessionId =
+        Number(request.params.id);
+
+      const commentId =
+        Number(request.params.commentId);
+
+      if (
+        !Number.isInteger(confessionId) ||
+        confessionId < 1 ||
+        !Number.isInteger(commentId) ||
+        commentId < 1
+      ) {
+        return response.status(400).json({
+          error:
+            'Commentaire invalide.'
+        });
+      }
+
+      /*
+       * Vérifier que le commentaire existe
+       * et appartient à la confession demandée.
+       */
+      const [commentRows] = await query(
+        `SELECT id
+         FROM confession_comments
+         WHERE id = ?
+           AND confession_id = ?
+         LIMIT 1`,
+        [
+          commentId,
+          confessionId
+        ]
+      );
+
+      if (!commentRows.length) {
+        return response.status(404).json({
+          error:
+            'Commentaire introuvable.'
+        });
+      }
+
+      /*
+       * Vérifier si l'utilisateur a déjà
+       * aimé ce commentaire.
+       */
+      const [existing] = await query(
+        `SELECT 1
+         FROM comment_likes
+         WHERE comment_id = ?
+           AND user_id = ?`,
+        [
+          commentId,
+          request.user.id
+        ]
+      );
+
+      /*
+       * Toggle du like.
+       */
+      if (existing.length) {
+        await query(
+          `DELETE FROM comment_likes
+           WHERE comment_id = ?
+             AND user_id = ?`,
+          [
+            commentId,
+            request.user.id
+          ]
+        );
+      } else {
+        await query(
+          `INSERT INTO comment_likes
+            (
+              comment_id,
+              user_id
+            )
+           VALUES (?, ?)`,
+          [
+            commentId,
+            request.user.id
+          ]
+        );
+      }
+
+      /*
+       * Recalculer le nombre total de likes.
+       */
+      const [[count]] = await query(
+        `SELECT COUNT(*) AS likes_count
+         FROM comment_likes
+         WHERE comment_id = ?`,
+        [commentId]
+      );
+
+      response.json({
+        liked: !existing.length,
+
+        likes_count:
+          Number(count.likes_count || 0)
+      });
+
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
 
 export default router;

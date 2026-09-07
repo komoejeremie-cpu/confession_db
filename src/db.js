@@ -77,10 +77,48 @@ export async function ensureSchema() {
       PRIMARY KEY (id),
       KEY confession_id (confession_id),
       KEY user_id (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS comment_likes (
+      comment_id INT NOT NULL,
+      user_id INT NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (comment_id, user_id),
+      KEY user_id (user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
   ];
 
   for (const statement of statements) {
     await pool.query(statement);
+  }
+
+  const [columns] = await pool.query(`
+    SELECT COUNT(*) AS count
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'confession_comments'
+      AND column_name = 'parent_comment_id'
+  `);
+
+  if (Number(columns[0].count) === 0) {
+    await pool.query(`
+      ALTER TABLE confession_comments
+      ADD COLUMN parent_comment_id INT NULL
+    `);
+  }
+
+  const [indexes] = await pool.query(`
+    SELECT COUNT(*) AS count
+    FROM information_schema.statistics
+    WHERE table_schema = DATABASE()
+      AND table_name = 'confession_comments'
+      AND index_name = 'parent_comment_id'
+  `);
+
+  if (Number(indexes[0].count) === 0) {
+    await pool.query(`
+      ALTER TABLE confession_comments
+      ADD KEY parent_comment_id (parent_comment_id)
+    `);
   }
 }
