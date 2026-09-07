@@ -331,6 +331,8 @@ La route retourne uniquement les coachs dont `status = 'APPROVED'`, joints a `us
 
 ## Pages utilisateur
 
+- Le premier accès à `/` sans session redirige vers `/register.html`.
+- Sur la page d'accueil, la section connexion est masquée automatiquement lorsqu'une session active est détectée.
 - `/` : accueil, confessions, coachs et publication.
 - `/login.html` : connexion. Une connexion reussie redirige vers `/profile.html`.
 - `/register.html` : inscription. Une inscription reussie cree la session puis redirige vers `/profile.html`.

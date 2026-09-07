@@ -97,13 +97,17 @@ app.get(
   }
 );
 
+const publicDir = path.join(__dirname, 'public');
+
+app.get('/', (_request, response) => {
+  response.sendFile(path.join(publicDir, 'index.html'));
+});
+
 /*
 |--------------------------------------------------------------------------
 | Fichiers statiques
 |--------------------------------------------------------------------------
 */
-
-const publicDir = path.join(__dirname, 'public');
 
 app.use(
   express.static(publicDir)
@@ -112,11 +116,6 @@ app.use(
 app.use(
   express.static(path.join(__dirname, 'public'))
 );
-app.get('/', (_request, response) => {
-  response.sendFile(
-    path.join(__dirname, 'index.html')
-  );
-});
 /*
 |--------------------------------------------------------------------------
 | Health check

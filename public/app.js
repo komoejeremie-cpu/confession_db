@@ -21,12 +21,51 @@ const coachCount = document.querySelector('#coach-count');
 const filterCoachesButton = document.querySelector('#filter-coaches');
 const confessionCategory = document.querySelector('#confession-category');
 const confessionCoach = document.querySelector('#confession-coach');
+const loginSection = document.querySelector('#connexion');
 const appToast = document.querySelector('#app-toast');
 const appToastTitle = document.querySelector('.app-toast-title');
 const appToastMessage = document.querySelector('.app-toast-message');
 const appToastClose = document.querySelector('.app-toast-close');
+const authActionModal = document.querySelector('#auth-action-modal');
+const authActionClose = document.querySelector('#auth-action-close');
 let selectedCategory = '';
 let toastTimer;
+let currentUser = null;
+let authCheckPromise;
+
+async function getCurrentUser() {
+  if (!authCheckPromise) {
+    authCheckPromise = fetch('/api/auth/me')
+      .then((response) => response.ok ? response.json() : null)
+      .catch(() => null);
+  }
+  currentUser = await authCheckPromise;
+  return currentUser;
+}
+
+function showAuthActionModal() {
+  if (authActionModal) authActionModal.hidden = false;
+}
+
+function hideAuthActionModal() {
+  if (authActionModal) authActionModal.hidden = true;
+}
+
+async function updateAuthenticatedView() {
+  if (!loginSection) return;
+
+  try {
+    const user = await getCurrentUser();
+    if (!user) return;
+    loginSection.hidden = true;
+    if (loginLink) {
+      loginLink.textContent = `Bonjour ${user.name}`;
+      loginLink.href = user.role === 'ADMIN' ? '/admin.html' : '/profile.html';
+    }
+  } catch (_error) {
+    // Une session absente laisse la section connexion visible.
+  }
+}
 
 function showToast(message, type = 'info', title = 'Information') {
   if (!appToast) return;
@@ -42,6 +81,11 @@ function showToast(message, type = 'info', title = 'Information') {
 
 appToastClose?.addEventListener('click', () => {
   appToast.hidden = true;
+});
+
+authActionClose?.addEventListener('click', hideAuthActionModal);
+authActionModal?.addEventListener('click', (event) => {
+  if (event.target === authActionModal) hideAuthActionModal();
 });
 
 function escapeHtml(value = '') {
@@ -152,6 +196,10 @@ async function loadContent() {
 
 confessionForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (!await getCurrentUser()) {
+    showAuthActionModal();
+    return;
+  }
   const button = confessionForm.querySelector('button');
   const title = confessionForm.elements.title;
   const category = confessionForm.elements.category;
@@ -237,6 +285,10 @@ document.addEventListener('click', async (event) => {
   if (!button) return;
   const card = button.closest('[data-confession-id]');
   const id = card.dataset.confessionId;
+  if (!await getCurrentUser()) {
+    showAuthActionModal();
+    return;
+  }
   if (button.classList.contains('comment-button')) {
     card.querySelector('.comment-form').hidden = !card.querySelector('.comment-form').hidden;
     return;
@@ -256,6 +308,10 @@ document.addEventListener('click', async (event) => {
 document.addEventListener('submit', async (event) => {
   if (!event.target.matches('.comment-form')) return;
   event.preventDefault();
+  if (!await getCurrentUser()) {
+    showAuthActionModal();
+    return;
+  }
   const form = event.target;
   const id = form.closest('[data-confession-id]').dataset.confessionId;
   const response = await fetch(`/api/confessions/${id}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: form.elements.content.value }) });
@@ -312,6 +368,7 @@ signupForm?.addEventListener('submit', async (event) => {
   }
 });
 
+updateAuthenticatedView();
 loadContent().catch(() => {
   // Le HTML conserve ses données de démonstration tant que la base n'est pas configurée.
 });
