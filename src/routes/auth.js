@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import nodemailer from 'nodemailer';
 import {
+  createHash,
   randomBytes,
   scrypt as scryptCallback,
   timingSafeEqual
@@ -12,6 +14,108 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 
 const scrypt = promisify(scryptCallback);
+const mailTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD
+  }
+});
+
+function hashResetToken(token) {
+  return createHash('sha256')
+    .update(token)
+    .digest('hex');
+}
+
+function getAppUrl() {
+  return (process.env.APP_URL || 'http://localhost:3000')
+    .replace(/\/+$/, '');
+}
+
+async function sendPasswordResetEmail({
+  email,
+  name,
+  resetUrl
+}) {
+  const fromName =
+    process.env.SMTP_FROM_NAME || 'Confidences';
+
+  const fromEmail = process.env.SMTP_FROM;
+
+  if (!fromEmail) {
+    throw new Error('SMTP_FROM est manquant.');
+  }
+
+  await mailTransporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to: email,
+    subject:
+      'Réinitialisation de votre mot de passe - Confidences',
+
+    text: [
+      `Bonjour ${name || ''},`,
+      '',
+      'Vous avez demandé la réinitialisation de votre mot de passe.',
+      '',
+      `Utilisez ce lien pour choisir un nouveau mot de passe : ${resetUrl}`,
+      '',
+      'Ce lien est valable pendant 1 heure.',
+      '',
+      'Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail.',
+      '',
+      'L’équipe Confidences'
+    ].join('\n'),
+
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;max-width:600px;margin:auto">
+        <h2>Réinitialisation de votre mot de passe</h2>
+
+        <p>Bonjour ${name || ''},</p>
+
+        <p>
+          Vous avez demandé la réinitialisation de votre
+          mot de passe sur <strong>Confidences</strong>.
+        </p>
+
+        <p>
+          Cliquez sur le bouton ci-dessous pour choisir
+          un nouveau mot de passe :
+        </p>
+
+        <p>
+          <a
+            href="${resetUrl}"
+            style="
+              display:inline-block;
+              padding:12px 20px;
+              background:#6d4aff;
+              color:#ffffff;
+              text-decoration:none;
+              border-radius:8px;
+            "
+          >
+            Réinitialiser mon mot de passe
+          </a>
+        </p>
+
+        <p>
+          Ce lien est valable pendant
+          <strong>1 heure</strong>.
+        </p>
+
+        <p>
+          Si vous n’êtes pas à l’origine de cette demande,
+          vous pouvez simplement ignorer cet e-mail.
+        </p>
+
+        <p>L’équipe Confidences</p>
+      </div>
+    `
+  });
+}
 
 function setSessionCookie(response, token) {
   const secure = process.env.NODE_ENV === 'production'
@@ -326,6 +430,159 @@ router.get('/me', async (request, response, next) => {
     }
 
     response.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+router.post('/forgot-password', async (request, response, next) => {
+  try {
+    const normalizedEmail = request.body.email?.trim().toLowerCase();
+
+    const genericResponse = {
+      message:
+        'Si cette adresse correspond à un compte, un e-mail de réinitialisation a été envoyé.'
+    };
+
+    if (!normalizedEmail) {
+      return response.json(genericResponse);
+    }
+
+    const [users] = await query(
+      `
+        SELECT id, name, email
+        FROM users
+        WHERE email = ?
+        LIMIT 1
+      `,
+      [normalizedEmail]
+    );
+
+    if (!users.length) {
+      return response.json(genericResponse);
+    }
+
+    const user = users[0];
+
+    await query(
+      'DELETE FROM password_resets WHERE user_id = ?',
+      [user.id]
+    );
+
+    const rawToken = randomBytes(32).toString('hex');
+    const tokenHash = hashResetToken(rawToken);
+
+    await query(
+      `
+        INSERT INTO password_resets
+          (user_id, token_hash, expires_at)
+        VALUES
+          (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))
+      `,
+      [user.id, tokenHash]
+    );
+
+    const resetUrl =
+      `${getAppUrl()}/reset-password.html?token=${encodeURIComponent(rawToken)}`;
+
+    try {
+      await sendPasswordResetEmail({
+        email: user.email,
+        name: user.name,
+        resetUrl
+      });
+    } catch (error) {
+      await query(
+        'DELETE FROM password_resets WHERE token_hash = ?',
+        [tokenHash]
+      );
+
+      throw error;
+    }
+
+    return response.json(genericResponse);
+  } catch (error) {
+    next(error);
+  }
+});
+router.post('/reset-password', async (request, response, next) => {
+  try {
+    const token = request.body.token?.trim();
+    const password = request.body.password;
+    const passwordConfirmation = request.body.passwordConfirmation;
+
+    if (!token || !password || !passwordConfirmation) {
+      return response.status(400).json({
+        error: 'Token et nouveau mot de passe obligatoires.'
+      });
+    }
+
+    if (password !== passwordConfirmation) {
+      return response.status(400).json({
+        error: 'Les deux mots de passe ne correspondent pas.'
+      });
+    }
+
+    if (password.length < 8) {
+      return response.status(400).json({
+        error: 'Le mot de passe doit contenir au moins 8 caractères.'
+      });
+    }
+
+    const tokenHash = hashResetToken(token);
+
+    const [resets] = await query(
+      `
+        SELECT id, user_id
+        FROM password_resets
+        WHERE token_hash = ?
+          AND expires_at > NOW()
+          AND used_at IS NULL
+        LIMIT 1
+      `,
+      [tokenHash]
+    );
+
+    if (!resets.length) {
+      return response.status(400).json({
+        error: 'Le lien de réinitialisation est invalide ou expiré.'
+      });
+    }
+
+    const reset = resets[0];
+    const passwordHash = await hashPassword(password);
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      await connection.execute(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [passwordHash, reset.user_id]
+      );
+
+      await connection.execute(
+        'DELETE FROM sessions WHERE user_id = ?',
+        [reset.user_id]
+      );
+
+      await connection.execute(
+        'UPDATE password_resets SET used_at = NOW() WHERE id = ?',
+        [reset.id]
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
+    return response.json({
+      message:
+        'Votre mot de passe a été réinitialisé avec succès.'
+    });
   } catch (error) {
     next(error);
   }

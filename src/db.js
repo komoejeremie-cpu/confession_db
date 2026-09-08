@@ -51,6 +51,19 @@ export async function ensureSchema() {
       KEY user_id (user_id),
       KEY expires_at (expires_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+     
+     `CREATE TABLE IF NOT EXISTS password_resets (
+  id INT NOT NULL AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  used_at DATETIME NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY token_hash (token_hash),
+  KEY user_id (user_id),
+  KEY expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     `CREATE TABLE IF NOT EXISTS confession_likes (
       confession_id INT NOT NULL,
