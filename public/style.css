@@ -1072,10 +1072,12 @@ h1 span{background:linear-gradient(90deg,#d96125,#8b78ce);-webkit-background-cli
     font-size: 17px;
   }
 
-  .nav-actions .btn {
-    padding: 7px 9px;
-    font-size: 11px;
-  }
+  .nav-actions .login-link {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+}
 
   .nav-links a {
     padding: 8px 10px;
