@@ -136,10 +136,46 @@ cancelProfileButton.addEventListener('click', () => {
   setEditMode(false);
 });
 
+const AUTO_LOGOUT_DELAY = 5 * 60 * 1000; // 5 minutes
+
+let logoutTimer;
+
+async function logoutUser() {
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST'
+    });
+  } finally {
+    window.location.assign('/login.html');
+  }
+}
+
+function resetLogoutTimer() {
+  clearTimeout(logoutTimer);
+
+  logoutTimer = setTimeout(() => {
+    logoutUser();
+  }, AUTO_LOGOUT_DELAY);
+}
+
 logoutButton.addEventListener('click', async () => {
-  await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.assign('/login.html');
+  clearTimeout(logoutTimer);
+  await logoutUser();
 });
+
+[
+  'click',
+  'mousemove',
+  'keydown',
+  'scroll',
+  'touchstart'
+].forEach((eventName) => {
+  document.addEventListener(eventName, resetLogoutTimer, {
+    passive: true
+  });
+});
+
+resetLogoutTimer();
 
 showCoachApplicationButton.addEventListener('click', () => {
   coachApplicationForm.hidden = false;

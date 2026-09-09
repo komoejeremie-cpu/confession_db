@@ -1,787 +1,914 @@
 const confessionGrid = document.querySelector('.confession-grid');
 const coachGrid = document.querySelector('.coach-grid');
 const confessionForm = document.querySelector('#confession-form');
-const signupForm = document.querySelector('#signup-form');
-const showSignupLink = document.querySelector('#show-signup');
-const hideSignupLink = document.querySelector('#hide-signup');
-const signupMessage = document.querySelector('#signup-message');
-const loginForm = document.querySelector('#login-form');
-const loginLink = document.querySelector('.login-link');
-const forgotPasswordLink = document.querySelector('#forgot-password');
-const googleLoginButton = document.querySelector('#google-login');
-const confessionSearch = document.querySelector('#confession-search');
-const confessionCount = document.querySelector('#confession-count');
-const toggleFiltersButton = document.querySelector('#toggle-filters');
-const chips = [...document.querySelectorAll('.chip')];
-const coachSearch = document.querySelector('#coach-search');
-const coachSpecialty = document.querySelector('#coach-specialty');
-const coachRating = document.querySelector('#coach-rating');
-const coachExperience = document.querySelector('#coach-experience');
-const coachCount = document.querySelector('#coach-count');
-const filterCoachesButton = document.querySelector('#filter-coaches');
 const confessionCategory = document.querySelector('#confession-category');
 const confessionCoach = document.querySelector('#confession-coach');
+const searchInput = document.querySelector('#search');
+const categoryFilter = document.querySelector('#category-filter');
+const showAllConfessionsButton = document.querySelector(
+  '#show-all-confessions'
+);
+
 const loginSection = document.querySelector('#connexion');
-const appToast = document.querySelector('#app-toast');
-const appToastTitle = document.querySelector('.app-toast-title');
-const appToastMessage = document.querySelector('.app-toast-message');
-const appToastClose = document.querySelector('.app-toast-close');
-const authActionModal = document.querySelector('#auth-action-modal');
-const authActionClose = document.querySelector('#auth-action-close');
+const loginForm = document.querySelector('#login-form');
+const registerForm = document.querySelector('#register-form');
+const forgotPasswordLink = document.querySelector('#forgot-password');
 
-let selectedCategory = '';
-let toastTimer;
-let currentUser = null;
-let authCheckPromise;
-
-
-/* =========================================================
-   AUTHENTIFICATION
-   ========================================================= */
-
-async function getCurrentUser() {
-  if (!authCheckPromise) {
-    authCheckPromise = fetch('/api/auth/me')
-      .then((response) => (
-        response.ok
-          ? response.json()
-          : null
-      ))
-      .catch(() => null);
-  }
-
-  currentUser = await authCheckPromise;
-  return currentUser;
-}
-
-
-function showAuthActionModal() {
-  if (authActionModal) {
-    authActionModal.hidden = false;
-  }
-}
-
-
-function hideAuthActionModal() {
-  if (authActionModal) {
-    authActionModal.hidden = true;
-  }
-}
-
-
-async function updateAuthenticatedView() {
-  if (!loginSection) return;
-
-  try {
-    const user = await getCurrentUser();
-
-    if (!user) return;
-
-    loginSection.hidden = true;
-
-    if (loginLink) {
-      loginLink.textContent = `Bonjour ${user.name}`;
-      loginLink.href =
-        user.role === 'ADMIN'
-          ? '/admin.html'
-          : '/profile.html';
-    }
-  } catch (_error) {
-    // Une session absente laisse la section connexion visible.
-  }
-}
-
-
-/* =========================================================
-   TOASTS
-   ========================================================= */
-
-function showToast(
-  message,
-  type = 'info',
-  title = 'Information'
-) {
-  if (!appToast) return;
-
-  window.clearTimeout(toastTimer);
-
-  if (appToastTitle) {
-    appToastTitle.textContent = title;
-  }
-
-  if (appToastMessage) {
-    appToastMessage.textContent = message;
-  }
-
-  appToast.className = `app-toast ${type}`;
-  appToast.hidden = false;
-
-  toastTimer = window.setTimeout(() => {
-    appToast.hidden = true;
-  }, 5000);
-}
-
-
-appToastClose?.addEventListener('click', () => {
-  appToast.hidden = true;
-});
-
-
-authActionClose?.addEventListener(
-  'click',
-  hideAuthActionModal
+const navLoginLink = document.querySelector('.nav-actions .login-link');
+const navProfileLink = document.querySelector(
+  '.nav-actions a[href="/profile.html"]'
 );
 
+const confessionCount = document.querySelector('#confession-count');
 
-authActionModal?.addEventListener(
-  'click',
-  (event) => {
-    if (event.target === authActionModal) {
-      hideAuthActionModal();
-    }
-  }
-);
-
+let allConfessions = [];
+let showAllConfessions = false;
 
 /* =========================================================
    UTILITAIRES
-   ========================================================= */
+========================================================= */
 
 function escapeHtml(value = '') {
-  return String(value).replace(
-    /[&<>'"]/g,
-    (character) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    })[character]
-  );
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
+function formatDate(dateString) {
+  if (!dateString) return '';
 
-function icon(name, size = 18) {
-  const icons = {
-    heart: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <path
-          d="M20.8 8.7c0 5.5-8.8 10.2-8.8 10.2S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    `,
+  const date = new Date(dateString);
 
-    comment: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <path
-          d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.5-.7L4 20l1.4-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    `,
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
 
-    reply: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <path
-          d="M9 8 4 12l5 4"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M4 12h9a6 6 0 0 1 6 6"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    `,
-
-    send: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <path
-          d="m4 4 16 8-16 8 3-8-3-8Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M7 12h13"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-      </svg>
-    `,
-
-    user: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <circle
-          cx="12"
-          cy="8"
-          r="3.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        />
-        <path
-          d="M5 20a7 7 0 0 1 14 0"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-      </svg>
-    `,
-
-    star: `
-      <svg
-        viewBox="0 0 24 24"
-        width="${size}"
-        height="${size}"
-        aria-hidden="true"
-      >
-        <path
-          d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        />
-      </svg>
-    `
-  };
-
-  return icons[name] || '';
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(date);
 }
 
+function showToast(
+  message,
+  type = 'success',
+  title = 'Information'
+) {
+  let toastContainer = document.querySelector('.toast-container');
 
-function formatDate(value) {
-  return new Intl.RelativeTimeFormat(
-    'fr',
-    { numeric: 'auto' }
-  ).format(
-    Math.round(
-      (new Date(value) - Date.now()) / 86400000
-    ),
-    'day'
-  );
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+
+  toast.innerHTML = `
+    <div class="toast-content">
+      <strong>${escapeHtml(title)}</strong>
+      <span>${escapeHtml(message)}</span>
+    </div>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-hide');
+
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3500);
 }
 
+/* =========================================================
+   AUTHENTIFICATION
+========================================================= */
+
+async function getCurrentUser() {
+  try {
+    const response = await fetch('/api/auth/me', {
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    return data.user || data || null;
+  } catch (error) {
+    console.error('Erreur récupération utilisateur :', error);
+    return null;
+  }
+}
+
+async function updateAuthenticatedView() {
+  const user = await getCurrentUser();
+
+  if (user) {
+    if (navLoginLink) {
+      navLoginLink.hidden = true;
+    }
+
+    if (navProfileLink) {
+      navProfileLink.hidden = false;
+      navProfileLink.textContent = 'Mon espace personnel';
+    }
+
+    if (loginSection) {
+      loginSection.hidden = true;
+    }
+
+    return user;
+  }
+
+  if (navLoginLink) {
+    navLoginLink.hidden = false;
+  }
+
+  if (navProfileLink) {
+    navProfileLink.hidden = true;
+  }
+
+  if (loginSection) {
+    loginSection.hidden = false;
+  }
+
+  return null;
+}
+
+/* =========================================================
+   CONFESSIONS
+========================================================= */
+
+function renderConfessions(confessions) {
+  if (!confessionGrid) {
+    return;
+  }
+
+  const visibleConfessions = showAllConfessions
+    ? confessions
+    : confessions.slice(0, 5);
+
+  if (confessionCount) {
+    confessionCount.textContent = `${confessions.length} publication${
+      confessions.length > 1 ? 's' : ''
+    }`;
+  }
+
+  if (visibleConfessions.length === 0) {
+    confessionGrid.innerHTML = `
+      <div class="empty-state">
+        <h3>Aucune publication trouvée</h3>
+        <p>
+          Aucune publication ne correspond à ta recherche.
+        </p>
+      </div>
+    `;
+
+    if (showAllConfessionsButton) {
+      showAllConfessionsButton.hidden = true;
+    }
+
+    return;
+  }
+
+  confessionGrid.innerHTML = visibleConfessions
+    .map((confession) => {
+      const likesCount = Number(confession.likes_count || 0);
+      const commentsCount = Number(confession.comments_count || 0);
+
+      const imageHtml = confession.image_url
+        ? `
+          <div class="confession-image">
+            <img
+              src="${escapeHtml(confession.image_url)}"
+              alt="Image de la publication"
+              loading="lazy"
+            />
+          </div>
+        `
+        : '';
+
+      return `
+        <article
+          class="confession-card"
+          data-confession-id="${escapeHtml(confession.id)}"
+        >
+          ${imageHtml}
+
+          <div class="confession-card-content">
+
+            <div class="confession-card-header">
+              <span class="tag">
+                ${escapeHtml(confession.category_name || 'Général')}
+              </span>
+
+              <span class="confession-date">
+                ${escapeHtml(formatDate(confession.created_at))}
+              </span>
+            </div>
+
+            <h3>
+              ${escapeHtml(confession.title || 'Sans titre')}
+            </h3>
+
+            <p class="confession-preview">
+              ${escapeHtml(confession.content || '')}
+            </p>
+
+            <div class="confession-meta">
+              <span>
+                Publication anonyme
+              </span>
+            </div>
+
+            <div class="confession-actions">
+
+              <button
+                type="button"
+                class="interaction-button like-button ${
+                  confession.liked ? 'is-active' : ''
+                }"
+                data-action="like"
+                data-confession-id="${escapeHtml(confession.id)}"
+              >
+                <span>♡</span>
+                <span class="like-count">${likesCount}</span>
+              </button>
+
+              <button
+                type="button"
+                class="interaction-button"
+                data-action="comments"
+                data-confession-id="${escapeHtml(confession.id)}"
+              >
+                <span>💬</span>
+                <span>${commentsCount}</span>
+              </button>
+
+              <button
+                type="button"
+                class="interaction-button favorite-button ${
+                  confession.favorite ? 'is-active' : ''
+                }"
+                data-action="favorite"
+                data-confession-id="${escapeHtml(confession.id)}"
+              >
+                <span>☆</span>
+              </button>
+
+            </div>
+
+            <div
+              class="comments-section"
+              id="comments-${escapeHtml(confession.id)}"
+              hidden
+            >
+              <div class="comments-list"></div>
+
+              <form
+                class="comment-form"
+                data-confession-id="${escapeHtml(confession.id)}"
+              >
+                <input
+                  type="text"
+                  name="content"
+                  placeholder="Écrire un commentaire..."
+                  required
+                  maxlength="1000"
+                />
+
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                >
+                  Commenter
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+
+  if (showAllConfessionsButton) {
+    showAllConfessionsButton.hidden =
+      confessions.length <= 5 || showAllConfessions;
+
+    showAllConfessionsButton.textContent = showAllConfessions
+      ? ''
+      : 'Voir toutes les publications';
+  }
+
+  visibleConfessions.forEach((confession) => {
+    loadComments(confession.id);
+  });
+}
 
 /* =========================================================
    COMMENTAIRES
-   ========================================================= */
+========================================================= */
 
-function buildCommentTree(comments) {
-  const map = new Map();
+async function loadComments(confessionId) {
+  const commentsSection = document.querySelector(
+    `#comments-${CSS.escape(String(confessionId))}`
+  );
 
-  comments.forEach((comment) => {
-    map.set(Number(comment.id), {
-      ...comment,
-      id: Number(comment.id),
-      parent_comment_id:
-        comment.parent_comment_id
-          ? Number(comment.parent_comment_id)
-          : null,
-      children: []
-    });
-  });
-
-  const roots = [];
-
-  map.forEach((comment) => {
-    if (
-      comment.parent_comment_id !== null &&
-      map.has(comment.parent_comment_id)
-    ) {
-      map
-        .get(comment.parent_comment_id)
-        .children
-        .push(comment);
-    } else {
-      roots.push(comment);
-    }
-  });
-
-  return roots;
-}
-
-
-function renderCommentTree(
-  comments,
-  level = 0
-) {
-  if (!comments.length) {
-    return `
-      <div class="comments-empty">
-        Aucun commentaire pour le moment.
-      </div>
-    `;
+  if (!commentsSection) {
+    return;
   }
 
-  return comments.map((comment) => {
-    const authorName = escapeHtml(
-      comment.author_name || 'Utilisateur'
+  const commentsList = commentsSection.querySelector('.comments-list');
+
+  if (!commentsList) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/confessions/${encodeURIComponent(confessionId)}/comments`,
+      {
+        credentials: 'include'
+      }
     );
 
-    const content = escapeHtml(
-      comment.content || ''
-    );
+    if (!response.ok) {
+      return;
+    }
 
-    const likesCount = Number(
-      comment.likes_count || 0
-    );
+    const data = await response.json();
+    const comments = data.comments || data || [];
 
-    const liked = Boolean(comment.liked);
+    renderComments(commentsList, comments);
+  } catch (error) {
+    console.error('Erreur chargement commentaires :', error);
+  }
+}
 
-    const createdAt = comment.created_at
-      ? new Date(
-          comment.created_at
-        ).toLocaleString(
-          'fr-FR',
-          {
-            dateStyle: 'short',
-            timeStyle: 'short'
-          }
-        )
-      : '';
+function renderComments(container, comments) {
+  if (!comments || comments.length === 0) {
+    container.innerHTML = `
+      <p class="no-comments">
+        Aucun commentaire pour le moment.
+      </p>
+    `;
 
-    return `
-      <article
-        class="comment-item"
-        data-comment-id="${comment.id}"
-      >
+    return;
+  }
 
-        <div class="comment-avatar">
-          ${icon('user', 18)}
-        </div>
+  const parents = comments.filter(
+    (comment) => !comment.parent_comment_id
+  );
 
-        <div class="comment-body">
+  const replies = comments.filter(
+    (comment) => comment.parent_comment_id
+  );
 
+  container.innerHTML = parents
+    .map((comment) => {
+      const commentReplies = replies.filter(
+        (reply) =>
+          Number(reply.parent_comment_id) === Number(comment.id)
+      );
+
+      return `
+        <div
+          class="comment"
+          data-comment-id="${escapeHtml(comment.id)}"
+        >
           <div class="comment-header">
-            <strong class="comment-author">
-              ${authorName}
+            <strong>
+              ${escapeHtml(comment.user_name || 'Utilisateur')}
             </strong>
 
-            <time class="comment-date">
-              ${escapeHtml(createdAt)}
-            </time>
+            <span>
+              ${escapeHtml(formatDate(comment.created_at))}
+            </span>
           </div>
 
-          <div class="comment-content">
-            ${content}
-          </div>
+          <p>
+            ${escapeHtml(comment.content || '')}
+          </p>
 
           <div class="comment-actions">
 
             <button
               type="button"
-              class="comment-action comment-like-button ${
-                liked ? 'is-liked' : ''
+              class="interaction-button comment-like-button ${
+                comment.liked ? 'is-active' : ''
               }"
-              data-comment-id="${comment.id}"
-              aria-label="Aimer le commentaire"
+              data-action="comment-like"
+              data-comment-id="${escapeHtml(comment.id)}"
             >
-              <span class="icon">
-                ${icon('heart', 17)}
-              </span>
-
-              <span class="comment-like-count">
-                ${likesCount}
+              ♡
+              <span>
+                ${Number(comment.likes_count || 0)}
               </span>
             </button>
 
             <button
               type="button"
-              class="comment-action reply-button"
-              data-comment-id="${comment.id}"
-              aria-label="Répondre au commentaire"
+              class="comment-reply-button"
+              data-action="reply"
+              data-comment-id="${escapeHtml(comment.id)}"
             >
-              <span class="icon">
-                ${icon('reply', 17)}
-              </span>
-
-              <span>Répondre</span>
+              Répondre
             </button>
 
           </div>
 
-          <form
-            class="reply-form"
-            data-parent-comment-id="${comment.id}"
+          <div class="comment-replies">
+            ${commentReplies
+              .map(
+                (reply) => `
+                  <div
+                    class="comment reply"
+                    data-comment-id="${escapeHtml(reply.id)}"
+                  >
+                    <div class="comment-header">
+                      <strong>
+                        ${escapeHtml(
+                          reply.user_name || 'Utilisateur'
+                        )}
+                      </strong>
+
+                      <span>
+                        ${escapeHtml(
+                          formatDate(reply.created_at)
+                        )}
+                      </span>
+                    </div>
+
+                    <p>
+                      ${escapeHtml(reply.content || '')}
+                    </p>
+
+                    <button
+                      type="button"
+                      class="interaction-button comment-like-button ${
+                        reply.liked ? 'is-active' : ''
+                      }"
+                      data-action="comment-like"
+                      data-comment-id="${escapeHtml(reply.id)}"
+                    >
+                      ♡
+                      <span>
+                        ${Number(reply.likes_count || 0)}
+                      </span>
+                    </button>
+                  </div>
+                `
+              )
+              .join('')}
+          </div>
+
+          <div
+            class="reply-form-container"
+            data-reply-to="${escapeHtml(comment.id)}"
             hidden
           >
-            <input
-              type="text"
-              name="content"
-              maxlength="1000"
-              placeholder="Écrire une réponse..."
-              required
-            >
+            <form class="reply-form">
+              <input
+                type="text"
+                name="content"
+                placeholder="Écrire une réponse..."
+                maxlength="1000"
+                required
+              />
 
-            <button type="submit">
-              ${icon('send', 17)}
-              <span>Envoyer</span>
-            </button>
-          </form>
-
-          ${
-            comment.children?.length
-              ? `
-                <div class="comment-children">
-                  ${renderCommentTree(
-                    comment.children,
-                    level + 1
-                  )}
-                </div>
-              `
-              : ''
-          }
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                Répondre
+              </button>
+            </form>
+          </div>
 
         </div>
-      </article>
-    `;
-  }).join('');
+      `;
+    })
+    .join('');
 }
 
+/* =========================================================
+   LIKES / FAVORIS
+========================================================= */
 
-async function loadComments(confessionId) {
-  const commentsContainer =
-    document.querySelector(
-      `[data-comments-for="${confessionId}"]`
-    );
-
-  if (!commentsContainer) return;
-
+async function toggleLike(confessionId, button) {
   try {
     const response = await fetch(
-      `/api/confessions/${confessionId}/comments`
+      `/api/confessions/${encodeURIComponent(confessionId)}/like`,
+      {
+        method: 'POST',
+        credentials: 'include'
+      }
     );
 
-    const comments = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        comments.error ||
-        'Impossible de charger les commentaires.'
+    if (response.status === 401) {
+      showToast(
+        'Connecte-toi pour aimer une publication.',
+        'info',
+        'Connexion requise'
       );
+
+      return;
     }
 
-    const tree = buildCommentTree(comments);
+    if (!response.ok) {
+      throw new Error('Impossible de modifier le like.');
+    }
 
-    commentsContainer.innerHTML =
-      renderCommentTree(tree);
+    const data = await response.json();
 
+    const countElement = button.querySelector('.like-count');
+
+    if (countElement && data.likes_count !== undefined) {
+      countElement.textContent = data.likes_count;
+    }
+
+    button.classList.toggle(
+      'is-active',
+      Boolean(data.liked)
+    );
   } catch (error) {
     console.error(error);
 
-    commentsContainer.innerHTML = `
-      <div class="comments-error">
-        Impossible de charger les commentaires.
-      </div>
-    `;
+    showToast(
+      'Impossible de modifier cette réaction.',
+      'error',
+      'Erreur'
+    );
   }
 }
 
+async function toggleFavorite(confessionId, button) {
+  try {
+    const response = await fetch(
+      `/api/confessions/${encodeURIComponent(confessionId)}/favorite`,
+      {
+        method: 'POST',
+        credentials: 'include'
+      }
+    );
+
+    if (response.status === 401) {
+      showToast(
+        'Connecte-toi pour ajouter une publication aux favoris.',
+        'info',
+        'Connexion requise'
+      );
+
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error('Impossible de modifier le favori.');
+    }
+
+    const data = await response.json();
+
+    button.classList.toggle(
+      'is-active',
+      Boolean(data.favorite)
+    );
+  } catch (error) {
+    console.error(error);
+
+    showToast(
+      'Impossible de modifier les favoris.',
+      'error',
+      'Erreur'
+    );
+  }
+}
 
 /* =========================================================
-   CONFESSIONS
-   ========================================================= */
+   COMMENTAIRES : LIKE
+========================================================= */
 
-function renderConfessions(confessions) {
-  if (confessionCount) {
-    confessionCount.textContent =
-      confessions.length;
+async function toggleCommentLike(commentId, button) {
+  try {
+    const response = await fetch(
+      `/api/comments/${encodeURIComponent(commentId)}/like`,
+      {
+        method: 'POST',
+        credentials: 'include'
+      }
+    );
+
+    if (response.status === 401) {
+      showToast(
+        'Connecte-toi pour aimer un commentaire.',
+        'info',
+        'Connexion requise'
+      );
+
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        'Impossible de modifier le like du commentaire.'
+      );
+    }
+
+    const data = await response.json();
+
+    button.classList.toggle(
+      'is-active',
+      Boolean(data.liked)
+    );
+
+    const countElement = button.querySelector('span');
+
+    if (countElement && data.likes_count !== undefined) {
+      countElement.textContent = data.likes_count;
+    }
+  } catch (error) {
+    console.error(error);
+
+    showToast(
+      'Impossible de modifier cette réaction.',
+      'error',
+      'Erreur'
+    );
   }
+}
 
-  if (!confessionGrid) return;
+/* =========================================================
+   AJOUT COMMENTAIRE
+========================================================= */
 
-  if (!confessions.length) {
-    confessionGrid.innerHTML = `
-      <p class="empty-state">
-        Aucune confession ne correspond à votre recherche.
-      </p>
-    `;
+async function submitComment(form) {
+  const confessionId = form.dataset.confessionId;
+  const input = form.elements.content;
 
+  if (!confessionId || !input?.value.trim()) {
     return;
   }
 
-  confessionGrid.innerHTML = confessions.map(
-    (confession) => `
-      <article
-        class="confession-card"
-        data-confession-id="${confession.id}"
-      >
+  const content = input.value.trim();
 
-        <div class="card-top">
+  try {
+    const response = await fetch(
+      `/api/confessions/${encodeURIComponent(confessionId)}/comments`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content
+        })
+      }
+    );
 
-          <div class="anon">
-            <span class="anon-icon">
-              ${icon('user', 20)}
-            </span>
+    if (response.status === 401) {
+      showToast(
+        'Connecte-toi pour commenter.',
+        'info',
+        'Connexion requise'
+      );
 
-            <div>
-              <strong>Anonyme</strong>
+      return;
+    }
 
-              <small>
-                ${formatDate(
-                  confession.created_at
-                )}
-              </small>
-            </div>
-          </div>
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
 
-          <span class="tag">
-            ${escapeHtml(
-              confession.category
-            )}
-          </span>
+      throw new Error(
+        data.error || 'Impossible d’ajouter le commentaire.'
+      );
+    }
 
-        </div>
+    input.value = '';
 
-        <h3>
-          « ${escapeHtml(
-            confession.title
-          )} »
-        </h3>
+    await loadComments(confessionId);
 
-        <p>
-          ${escapeHtml(
-            confession.content
-          )}
-        </p>
+    showToast(
+      'Ton commentaire a été publié.',
+      'success',
+      'Commentaire publié'
+    );
+  } catch (error) {
+    console.error(error);
 
-        <div class="card-meta card-actions">
-
-          <button
-            type="button"
-            class="interaction-button like-button"
-            aria-label="Aimer la confession"
-          >
-            ${icon('heart', 18)}
-
-            <span>
-              ${confession.likes_count ?? 0}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            class="interaction-button comment-button"
-            aria-label="Voir les commentaires"
-          >
-            ${icon('comment', 18)}
-
-            <span>
-              ${confession.comments_count ?? 0}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            class="interaction-button favorite-button"
-            aria-label="Ajouter aux favoris"
-          >
-            ${icon('star', 18)}
-
-            <span>
-              Favori
-            </span>
-          </button>
-
-        </div>
-
-        <div
-          class="comments-list"
-          data-comments-for="${confession.id}"
-        >
-          <span class="comments-loading">
-            Chargement des commentaires...
-          </span>
-        </div>
-
-        <form
-          class="comment-form"
-          data-confession-id="${confession.id}"
-          hidden
-        >
-          <input
-            type="text"
-            name="content"
-            maxlength="1000"
-            placeholder="Écrire un commentaire..."
-            required
-          >
-
-          <button type="submit">
-            ${icon('send', 17)}
-            <span>Envoyer</span>
-          </button>
-        </form>
-
-      </article>
-    `
-  ).join('');
-
-  confessions.forEach((confession) => {
-    loadComments(confession.id);
-  });
+    showToast(
+      error.message || 'Impossible de publier le commentaire.',
+      'error',
+      'Erreur'
+    );
+  }
 }
 
+/* =========================================================
+   RÉPONSE À UN COMMENTAIRE
+========================================================= */
+
+async function submitReply(form) {
+  const container = form.closest('.reply-form-container');
+
+  if (!container) {
+    return;
+  }
+
+  const commentId = container.dataset.replyTo;
+  const commentElement = container.closest('.comment');
+  const confessionCard = container.closest('.confession-card');
+
+  if (!commentId || !commentElement || !confessionCard) {
+    return;
+  }
+
+  const confessionId =
+    confessionCard.dataset.confessionId;
+
+  const input = form.elements.content;
+
+  if (!input?.value.trim()) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/confessions/${encodeURIComponent(
+        confessionId
+      )}/comments`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: input.value.trim(),
+          parent_comment_id: commentId
+        })
+      }
+    );
+
+    if (response.status === 401) {
+      showToast(
+        'Connecte-toi pour répondre.',
+        'info',
+        'Connexion requise'
+      );
+
+      return;
+    }
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.error || 'Impossible de publier la réponse.'
+      );
+    }
+
+    input.value = '';
+
+    await loadComments(confessionId);
+
+    showToast(
+      'Ta réponse a été publiée.',
+      'success',
+      'Réponse publiée'
+    );
+  } catch (error) {
+    console.error(error);
+
+    showToast(
+      error.message || 'Impossible de publier la réponse.',
+      'error',
+      'Erreur'
+    );
+  }
+}
 
 /* =========================================================
-   COACHS
-   ========================================================= */
+   CHARGEMENT DES COACHS
+========================================================= */
 
 function renderCoaches(coaches) {
-  if (coachCount) {
-    coachCount.textContent =
-      coaches.length;
+  if (!coachGrid) {
+    return;
   }
 
-  if (!coachGrid) return;
-
-  if (!coaches.length) {
+  if (!coaches || coaches.length === 0) {
     coachGrid.innerHTML = `
-      <p class="empty-state">
-        Aucun coach ne correspond à vos filtres.
-      </p>
+      <div class="empty-state">
+        <h3>Aucun coach disponible</h3>
+        <p>Les coachs approuvés apparaîtront ici.</p>
+      </div>
     `;
 
     return;
   }
 
-  coachGrid.innerHTML = coaches.map(
-    (coach) => `
-      <article
-        class="coach-card"
-        data-coach-id="${coach.id}"
-      >
-
-        <div class="coach-head">
-
-          <div class="coach-photo photo1">
+  coachGrid.innerHTML = coaches
+    .map((coach) => {
+      const photoHtml = coach.photo_url
+        ? `
+          <img
+            src="${escapeHtml(coach.photo_url)}"
+            alt="Photo du coach"
+            class="coach-photo"
+            loading="lazy"
+          />
+        `
+        : `
+          <div class="coach-photo coach-photo-placeholder">
             ${escapeHtml(
-              coach.name
-                .split(' ')
-                .map((part) => part[0])
-                .join('')
+              (coach.name || 'C').charAt(0).toUpperCase()
             )}
           </div>
+        `;
 
-          <div>
-            <h3>
-              ${escapeHtml(coach.name)}
-            </h3>
+      return `
+        <article class="coach-card">
 
-            <span class="verified">
-              ✓ Coach vérifié
-            </span>
-
-            <p>
-              ▥ ${coach.years_experience}
-              ans d'expérience
-            </p>
+          <div class="coach-card-photo">
+            ${photoHtml}
           </div>
 
-        </div>
+          <div class="coach-card-content">
 
-        <div class="tags">
-          ${
-            (coach.specialties || [])
-              .map(
-                (tag) => `
-                  <span>
-                    ${escapeHtml(tag)}
-                  </span>
+            <h3>
+              ${escapeHtml(coach.name || 'Coach')}
+            </h3>
+
+            <p class="coach-speciality">
+              ${escapeHtml(
+                coach.speciality || 'Coach accompagnant'
+              )}
+            </p>
+
+            ${
+              coach.bio
+                ? `
+                  <p>
+                    ${escapeHtml(coach.bio)}
+                  </p>
                 `
-              )
-              .join('')
-          }
-        </div>
+                : ''
+            }
 
-        <div class="rating">
-          ★★★★★
-          <b>${coach.rating}</b>
-          <small>
-            (${coach.reviews_count} avis)
-          </small>
-        </div>
+            ${
+              coach.rating_avg !== undefined &&
+              coach.rating_avg !== null
+                ? `
+                  <div class="coach-rating">
+                    ★ ${Number(coach.rating_avg).toFixed(1)}
+                  </div>
+                `
+                : ''
+            }
 
-        <a
-          href="#connexion"
-          class="coach-link"
-        >
-          Voir le profil →
-        </a>
+            <a
+              href="/coach-profil.html?id=${encodeURIComponent(
+                coach.id
+              )}"
+              class="btn btn-secondary"
+            >
+              Voir le profil
+            </a>
 
-      </article>
-    `
-  ).join('');
+          </div>
+
+        </article>
+      `;
+    })
+    .join('');
 }
-
 
 /* =========================================================
    CHARGEMENT DES DONNÉES
-   ========================================================= */
+========================================================= */
 
 async function loadContent() {
+  const search = searchInput?.value.trim() || '';
+  const category = categoryFilter?.value || '';
+
   const params = new URLSearchParams();
 
-  if (selectedCategory) {
-    params.set(
-      'category',
-      selectedCategory
-    );
+  if (search) {
+    params.set('search', search);
   }
 
-  if (confessionSearch?.value) {
-    params.set(
-      'search',
-      confessionSearch.value
-    );
+  if (category) {
+    params.set('category', category);
   }
 
   const [
@@ -789,89 +916,100 @@ async function loadContent() {
     coachesResponse,
     categoriesResponse
   ] = await Promise.all([
-    fetch(
-      `/api/confessions?${params}`
-    ),
-    fetch('/api/coaches'),
-    fetch('/api/categories')
+    fetch(`/api/confessions?${params.toString()}`, {
+      credentials: 'include'
+    }),
+    fetch('/api/coaches', {
+      credentials: 'include'
+    }),
+    fetch('/api/categories', {
+      credentials: 'include'
+    })
   ]);
 
-  if (
-    !confessionsResponse.ok ||
-    !coachesResponse.ok ||
-    !categoriesResponse.ok
-  ) {
+  if (!confessionsResponse.ok) {
     throw new Error(
-      'Impossible de charger les données.'
+      'Impossible de charger les publications.'
     );
   }
 
-  renderConfessions(
-    await confessionsResponse.json()
-  );
+  if (!coachesResponse.ok) {
+    throw new Error(
+      'Impossible de charger les coachs.'
+    );
+  }
 
-  const coaches =
+  if (!categoriesResponse.ok) {
+    throw new Error(
+      'Impossible de charger les catégories.'
+    );
+  }
+
+  const confessionsData =
+    await confessionsResponse.json();
+
+  const coachesData =
     await coachesResponse.json();
 
-  renderCoaches(coaches);
-
-  const categories =
+  const categoriesData =
     await categoriesResponse.json();
 
-  if (confessionCategory) {
+  const confessions =
+    confessionsData.confessions ||
+    confessionsData ||
+    [];
+
+  const coaches =
+    coachesData.coaches ||
+    coachesData ||
+    [];
+
+  const categories =
+    categoriesData.categories ||
+    categoriesData ||
+    [];
+
+  allConfessions = confessions;
+
+  renderConfessions(allConfessions);
+  renderCoaches(coaches);
+
+  /*
+   * Remplissage du sélecteur de catégories
+   * uniquement si nécessaire.
+   */
+  if (
+    confessionCategory &&
+    confessionCategory.options.length <= 1
+  ) {
     confessionCategory.innerHTML =
       '<option value="">Choisir une catégorie</option>' +
       categories
         .map(
-          (category) => `
-            <option value="${escapeHtml(
-              category.name
-            )}">
-              ${escapeHtml(
-                category.name
-              )}
+          (item) => `
+            <option value="${escapeHtml(item.id)}">
+              ${escapeHtml(item.name)}
             </option>
           `
         )
         .join('');
   }
 
+  /*
+   * Le filtre de catégories peut également
+   * être rempli dynamiquement.
+   */
   if (
-    coachSpecialty &&
-    !coachSpecialty.options[1]
+    categoryFilter &&
+    categoryFilter.options.length <= 1
   ) {
-    coachSpecialty.innerHTML += [
-      ...new Set(
-        coaches.flatMap(
-          (coach) =>
-            coach.specialties || []
-        )
-      )
-    ]
-      .map(
-        (specialty) => `
-          <option value="${escapeHtml(
-            specialty
-          )}">
-            ${escapeHtml(specialty)}
-          </option>
-        `
-      )
-      .join('');
-  }
-
-  if (confessionCoach) {
-    confessionCoach.innerHTML =
-      '<option value="">Aucun coach</option>' +
-      coaches
+    categoryFilter.innerHTML =
+      '<option value="">Toutes les catégories</option>' +
+      categories
         .map(
-          (coach) => `
-            <option value="${coach.id}">
-              ${escapeHtml(
-                coach.name
-              )}
-              —
-              ${coach.rating} ★
+          (item) => `
+            <option value="${escapeHtml(item.id)}">
+              ${escapeHtml(item.name)}
             </option>
           `
         )
@@ -879,828 +1017,620 @@ async function loadContent() {
   }
 }
 
-
 /* =========================================================
-   PUBLICATION D'UNE CONFESSION
-   ========================================================= */
+   BOUTON "VOIR TOUTES LES PUBLICATIONS"
+========================================================= */
 
-confessionForm?.addEventListener(
-  'submit',
-  async (event) => {
-    event.preventDefault();
-
-    if (!await getCurrentUser()) {
-      showAuthActionModal();
-      return;
-    }
-
-    const button =
-      confessionForm.querySelector(
-        'button'
-      );
-
-    const title =
-      confessionForm.elements.title;
-
-    const category =
-      confessionForm.elements.category;
-
-    const content =
-      confessionForm.elements.content;
-
-    const coach =
-      confessionForm.elements.coachId;
-
-    button.disabled = true;
-    button.textContent =
-      'Publication...';
-
-    try {
-      const response = await fetch(
-        '/api/confessions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          body: JSON.stringify({
-            title: title.value,
-            category: category.value,
-            content: content.value,
-            coachId:
-              coach.value || null
-          })
-        }
-      );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          'La publication a échoué.'
-        );
-      }
-
-      confessionForm.reset();
-
-      showToast(
-        'Ta confession a été publiée anonymement.',
-        'success',
-        'Publication réussie'
-      );
-
-      await loadContent();
-
-    } catch (error) {
-      showToast(
-        error.message,
-        'error',
-        'Publication impossible'
-      );
-
-    } finally {
-      button.disabled = false;
-      button.textContent =
-        'Publier ma confession';
-    }
-  }
-);
-
-
-/* =========================================================
-   FILTRES COACHS
-   ========================================================= */
-
-async function applyCoachFilters() {
-  const params =
-    new URLSearchParams();
-
-  if (coachSearch?.value) {
-    params.set(
-      'search',
-      coachSearch.value
-    );
-  }
-
-  if (coachSpecialty?.value) {
-    params.set(
-      'specialty',
-      coachSpecialty.value
-    );
-  }
-
-  const response = await fetch(
-    `/api/coaches?${params}`
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      'Impossible de filtrer les coachs.'
-    );
-  }
-
-  let coaches =
-    await response.json();
-
-  if (coachRating?.value) {
-    coaches = coaches.filter(
-      (coach) =>
-        Number(coach.rating) >=
-        Number(coachRating.value)
-    );
-  }
-
-  if (coachExperience?.value) {
-    coaches = coaches.filter(
-      (coach) =>
-        Number(
-          coach.years_experience
-        ) >=
-        Number(
-          coachExperience.value
-        )
-    );
-  }
-
-  renderCoaches(coaches);
-}
-
-
-/* =========================================================
-   RECHERCHE ET CATÉGORIES
-   ========================================================= */
-
-confessionSearch?.addEventListener(
-  'input',
-  () => {
-    loadContent().catch(() => {});
-  }
-);
-
-
-chips.forEach((chip) => {
-  chip.addEventListener(
+if (showAllConfessionsButton) {
+  showAllConfessionsButton.addEventListener(
     'click',
     () => {
-      chips.forEach((item) => {
-        item.classList.remove(
-          'selected'
-        );
-      });
+      showAllConfessions = true;
 
-      chip.classList.add('selected');
-
-      selectedCategory =
-        chip.textContent.trim() ===
-        'Toutes'
-          ? ''
-          : chip.textContent.trim();
-
-      loadContent().catch(() => {});
+      renderConfessions(allConfessions);
     }
   );
-});
+}
 
+/* =========================================================
+   RECHERCHE / FILTRE
+========================================================= */
 
-toggleFiltersButton?.addEventListener(
-  'click',
-  () => {
-    document
-      .querySelector('.chips')
-      ?.toggleAttribute('hidden');
-  }
-);
+let searchTimeout;
 
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
 
-filterCoachesButton?.addEventListener(
-  'click',
-  () => {
-    applyCoachFilters().catch(
-      (error) => {
+    searchTimeout = setTimeout(() => {
+      showAllConfessions = false;
+
+      loadContent().catch((error) => {
+        console.error(error);
+
         showToast(
-          error.message,
+          'Impossible de mettre à jour les publications.',
           'error',
-          'Filtrage impossible'
+          'Erreur'
+        );
+      });
+    }, 300);
+  });
+}
+
+if (categoryFilter) {
+  categoryFilter.addEventListener('change', () => {
+    showAllConfessions = false;
+
+    loadContent().catch((error) => {
+      console.error(error);
+
+      showToast(
+        'Impossible de filtrer les publications.',
+        'error',
+        'Erreur'
+      );
+    });
+  });
+}
+
+/* =========================================================
+   FORMULAIRE DE PUBLICATION
+========================================================= */
+
+if (confessionForm) {
+  confessionForm.addEventListener(
+    'submit',
+    async (event) => {
+      event.preventDefault();
+
+      const title =
+        confessionForm.elements.title;
+
+      const category =
+        confessionForm.elements.category;
+
+      const content =
+        confessionForm.elements.content;
+
+      const coach =
+        confessionForm.elements.coachId;
+
+      const image =
+        confessionForm.elements.image;
+
+      if (!title?.value.trim()) {
+        showToast(
+          'Ajoute un titre à ta publication.',
+          'error',
+          'Titre manquant'
+        );
+
+        return;
+      }
+
+      if (!category?.value) {
+        showToast(
+          'Choisis une catégorie.',
+          'error',
+          'Catégorie manquante'
+        );
+
+        return;
+      }
+
+      if (!content?.value.trim()) {
+        showToast(
+          'Écris le contenu de ta publication.',
+          'error',
+          'Contenu manquant'
+        );
+
+        return;
+      }
+
+      const submitButton =
+        confessionForm.querySelector(
+          'button[type="submit"]'
+        );
+
+      const originalButtonText =
+        submitButton?.textContent ||
+        'Publier ma publication';
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Publication...';
+      }
+
+      try {
+        const formData = new FormData();
+
+        formData.append(
+          'title',
+          title.value.trim()
+        );
+
+        formData.append(
+          'category',
+          category.value
+        );
+
+        formData.append(
+          'content',
+          content.value.trim()
+        );
+
+        formData.append(
+          'coachId',
+          coach?.value || ''
+        );
+
+        if (image?.files?.[0]) {
+          formData.append(
+            'image',
+            image.files[0]
+          );
+        }
+
+        const response = await fetch(
+          '/api/confessions',
+          {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          }
+        );
+
+        const data =
+          await response.json().catch(
+            () => ({})
+          );
+
+        if (response.status === 401) {
+          showToast(
+            'Connecte-toi pour publier une publication.',
+            'info',
+            'Connexion requise'
+          );
+
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              'Impossible de publier cette publication.'
+          );
+        }
+
+        confessionForm.reset();
+
+        showAllConfessions = false;
+
+        await loadContent();
+
+        showToast(
+          'Ta publication a bien été publiée.',
+          'success',
+          'Publication réussie'
+        );
+
+        /*
+         * Retour vers la section des publications
+         * après publication.
+         */
+        const confessionsSection =
+          document.querySelector('#confessions');
+
+        if (confessionsSection) {
+          confessionsSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      } catch (error) {
+        console.error(
+          'Erreur publication :',
+          error
+        );
+
+        showToast(
+          error.message ||
+            'Impossible de publier ta publication.',
+          'error',
+          'Erreur de publication'
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent =
+            originalButtonText ||
+            'Publier ma publication';
+        }
+      }
+    }
+  );
+}
+
+/* =========================================================
+   CLICS SUR LES PUBLICATIONS
+========================================================= */
+
+if (confessionGrid) {
+  confessionGrid.addEventListener(
+    'click',
+    async (event) => {
+      const button =
+        event.target.closest(
+          '[data-action]'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      const action =
+        button.dataset.action;
+
+      const confessionId =
+        button.dataset.confessionId;
+
+      if (!confessionId) {
+        return;
+      }
+
+      if (action === 'like') {
+        await toggleLike(
+          confessionId,
+          button
+        );
+
+        return;
+      }
+
+      if (action === 'favorite') {
+        await toggleFavorite(
+          confessionId,
+          button
+        );
+
+        return;
+      }
+
+      if (action === 'comments') {
+        const commentsSection =
+          document.querySelector(
+            `#comments-${CSS.escape(
+              String(confessionId)
+            )}`
+          );
+
+        if (commentsSection) {
+          commentsSection.hidden =
+            !commentsSection.hidden;
+        }
+
+        return;
+      }
+
+      if (action === 'reply') {
+        const commentId =
+          button.dataset.commentId;
+
+        const replyContainer =
+          button
+            .closest('.comment')
+            ?.querySelector(
+              `[data-reply-to="${CSS.escape(
+                String(commentId)
+              )}"]`
+            );
+
+        if (replyContainer) {
+          replyContainer.hidden =
+            !replyContainer.hidden;
+        }
+
+        return;
+      }
+
+      if (action === 'comment-like') {
+        const commentId =
+          button.dataset.commentId;
+
+        if (!commentId) {
+          return;
+        }
+
+        await toggleCommentLike(
+          commentId,
+          button
         );
       }
-    );
-  }
-);
+    }
+  );
 
+  confessionGrid.addEventListener(
+    'submit',
+    async (event) => {
+      const form =
+        event.target.closest('form');
+
+      if (!form) {
+        return;
+      }
+
+      if (
+        form.classList.contains(
+          'comment-form'
+        )
+      ) {
+        event.preventDefault();
+
+        await submitComment(form);
+
+        return;
+      }
+
+      if (
+        form.classList.contains(
+          'reply-form'
+        )
+      ) {
+        event.preventDefault();
+
+        await submitReply(form);
+      }
+    }
+  );
+}
 
 /* =========================================================
    CONNEXION
-   ========================================================= */
+========================================================= */
 
-loginForm?.addEventListener(
-  'submit',
-  async (event) => {
-    event.preventDefault();
+if (loginForm) {
+  loginForm.addEventListener(
+    'submit',
+    async (event) => {
+      event.preventDefault();
 
-    const button =
-      loginForm.querySelector(
-        'button'
-      );
+      const email =
+        loginForm.elements.email;
 
-    button.disabled = true;
+      const password =
+        loginForm.elements.password;
 
-    try {
-      const response = await fetch(
-        '/api/auth/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          body: JSON.stringify(
-            Object.fromEntries(
-              new FormData(loginForm)
-            )
-          )
-        }
-      );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          'Connexion impossible.'
+      if (
+        !email?.value.trim() ||
+        !password?.value
+      ) {
+        showToast(
+          'Renseigne ton adresse email et ton mot de passe.',
+          'error',
+          'Champs manquants'
         );
+
+        return;
       }
 
-      window.location.replace(
-        data.role === 'ADMIN'
-          ? '/admin.html'
-          : '/profile.html'
-      );
-
-    } catch (error) {
-      showToast(
-        error.message,
-        'error',
-        'Connexion impossible'
-      );
-
-    } finally {
-      button.disabled = false;
-    }
-  }
-);
-
-
-/* =========================================================
-   MOT DE PASSE OUBLIÉ
-   ========================================================= */
-
-/*
- * IMPORTANT :
- * L'ancien code affichait :
- *
- * "La récupération du mot de passe sera disponible prochainement."
- *
- * Maintenant la fonctionnalité existe réellement.
- * Le lien doit ouvrir la page de récupération.
- */
-
-forgotPasswordLink?.addEventListener(
-  'click',
-  (event) => {
-    event.preventDefault();
-
-    window.location.href =
-      '/forgot-password.html';
-  }
-);
-
-
-/* =========================================================
-   CONNEXION GOOGLE
-   ========================================================= */
-
-googleLoginButton?.addEventListener(
-  'click',
-  () => {
-    showToast(
-      'La connexion Google nécessite la configuration OAuth du projet.',
-      'info',
-      'Connexion Google'
-    );
-  }
-);
-
-
-/* =========================================================
-   ACTIONS SUR LES COMMENTAIRES ET CONFESSIONS
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  async (event) => {
-    if (
-      !(event.target instanceof Element)
-    ) {
-      return;
-    }
-
-
-    /* -----------------------------------------------------
-       LIKE COMMENTAIRE
-       ----------------------------------------------------- */
-
-    const commentLikeButton =
-      event.target.closest(
-        '.comment-like-button'
-      );
-
-    if (commentLikeButton) {
-      const comment =
-        commentLikeButton.closest(
-          '[data-comment-id]'
+      const submitButton =
+        loginForm.querySelector(
+          'button[type="submit"]'
         );
 
-      const card =
-        comment?.closest(
-          '[data-confession-id]'
-        );
-
-      if (!comment || !card) return;
-
-      const confessionId =
-        card.dataset.confessionId;
-
-      const commentId =
-        comment.dataset.commentId;
-
-      if (!await getCurrentUser()) {
-        showAuthActionModal();
-        return;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent =
+          'Connexion...';
       }
 
       try {
         const response =
           await fetch(
-            `/api/confessions/${confessionId}/comments/${commentId}/like`,
+            '/api/auth/login',
             {
-              method: 'POST'
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+              body: JSON.stringify({
+                email:
+                  email.value.trim(),
+                password:
+                  password.value
+              })
             }
           );
 
         const data =
-          await response.json();
+          await response.json().catch(
+            () => ({})
+          );
 
         if (!response.ok) {
           throw new Error(
             data.error ||
-            'Action impossible.'
+              'Connexion impossible.'
           );
         }
 
-        commentLikeButton.classList.toggle(
-          'active',
-          data.liked
-        );
-
-        const count =
-          commentLikeButton.querySelector(
-            '.comment-like-count'
-          );
-
-        if (count) {
-          count.textContent =
-            data.likes_count;
-        }
-
-      } catch (error) {
         showToast(
-          error.message,
+          'Connexion réussie.',
+          'success',
+          'Bienvenue'
+        );
+
+        window.location.assign(
+          '/profile.html'
+        );
+      } catch (error) {
+        console.error(error);
+
+        showToast(
+          error.message ||
+            'Connexion impossible.',
           'error',
-          'Action impossible'
+          'Erreur'
         );
-      }
-
-      return;
-    }
-
-
-    /* -----------------------------------------------------
-       RÉPONDRE À UN COMMENTAIRE
-       ----------------------------------------------------- */
-
-    const replyButton =
-      event.target.closest(
-        '.reply-button'
-      );
-
-    if (replyButton) {
-      const comment =
-        replyButton.closest(
-          '[data-comment-id]'
-        );
-
-      if (!comment) return;
-
-      if (!await getCurrentUser()) {
-        showAuthActionModal();
-        return;
-      }
-
-      const replyForm =
-        comment.querySelector(
-          '.reply-form'
-        );
-
-      if (!replyForm) return;
-
-      replyForm.hidden =
-        !replyForm.hidden;
-
-      if (!replyForm.hidden) {
-        const input =
-          replyForm.querySelector(
-            'input[name="content"]'
-          );
-
-        if (input) {
-          input.focus();
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent =
+            'Se connecter';
         }
       }
-
-      return;
     }
-
-
-    /* -----------------------------------------------------
-       ACTIONS SUR LES CONFESSIONS
-       ----------------------------------------------------- */
-
-    const button =
-      event.target.closest(
-        '.like-button, .favorite-button, .comment-button'
-      );
-
-    if (!button) return;
-
-    const card =
-      button.closest(
-        '[data-confession-id]'
-      );
-
-    if (!card) return;
-
-    const id =
-      card.dataset.confessionId;
-
-    if (!await getCurrentUser()) {
-      showAuthActionModal();
-      return;
-    }
-
-
-    /* -----------------------------------------------------
-       OUVRIR / FERMER COMMENTAIRES
-       ----------------------------------------------------- */
-
-    if (
-      button.classList.contains(
-        'comment-button'
-      )
-    ) {
-      const form =
-        card.querySelector(
-          '.comment-form'
-        );
-
-      if (!form) return;
-
-      form.hidden =
-        !form.hidden;
-
-      if (!form.hidden) {
-        const input =
-          form.querySelector(
-            'input[name="content"]'
-          );
-
-        if (input) {
-          input.focus();
-        }
-      }
-
-      return;
-    }
-
-
-    /* -----------------------------------------------------
-       LIKE OU FAVORI
-       ----------------------------------------------------- */
-
-    const endpoint =
-      button.classList.contains(
-        'like-button'
-      )
-        ? 'like'
-        : 'favorite';
-
-    try {
-      const response =
-        await fetch(
-          `/api/confessions/${id}/${endpoint}`,
-          {
-            method: 'POST'
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          'Action impossible.'
-        );
-      }
-
-      if (endpoint === 'like') {
-        button.classList.toggle(
-          'active',
-          data.liked
-        );
-
-        const count =
-          button.querySelector(
-            'span'
-          );
-
-        if (count) {
-          count.textContent =
-            data.likes_count;
-        }
-
-      } else {
-        button.classList.toggle(
-          'active',
-          data.favorite
-        );
-      }
-
-    } catch (error) {
-      showToast(
-        error.message,
-        'error',
-        'Action impossible'
-      );
-    }
-  }
-);
-
-
-/* =========================================================
-   COMMENTAIRES / RÉPONSES
-   ========================================================= */
-
-document.addEventListener(
-  'submit',
-  async (event) => {
-    if (
-      !(event.target instanceof HTMLFormElement) ||
-      !event.target.matches(
-        '.comment-form, .reply-form'
-      )
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (!await getCurrentUser()) {
-      showAuthActionModal();
-      return;
-    }
-
-    const form = event.target;
-
-    const card =
-      form.closest(
-        '[data-confession-id]'
-      );
-
-    if (!card) return;
-
-    const confessionId =
-      card.dataset.confessionId;
-
-    const input =
-      form.elements.content;
-
-    if (!input) return;
-
-    const content =
-      input.value.trim();
-
-    if (!content) {
-      return;
-    }
-
-    const parentCommentId =
-      form.classList.contains(
-        'reply-form'
-      )
-        ? Number(
-            form.dataset.parentCommentId
-          )
-        : null;
-
-    try {
-      const response =
-        await fetch(
-          `/api/confessions/${confessionId}/comments`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-            body: JSON.stringify({
-              content,
-              parentCommentId
-            })
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          'Commentaire impossible.'
-        );
-      }
-
-      form.reset();
-      form.hidden = true;
-
-      showToast(
-        form.classList.contains(
-          'reply-form'
-        )
-          ? 'Votre réponse est maintenant visible par la communauté.'
-          : 'Votre commentaire est maintenant visible par la communauté.',
-        'success',
-        form.classList.contains(
-          'reply-form'
-        )
-          ? 'Réponse publiée'
-          : 'Commentaire publié'
-      );
-
-      await loadComments(
-        confessionId
-      );
-
-    } catch (error) {
-      console.error(error);
-
-      showToast(
-        error.message,
-        'error',
-        form.classList.contains(
-          'reply-form'
-        )
-          ? 'Réponse impossible'
-          : 'Commentaire impossible'
-      );
-    }
-  }
-);
-
+  );
+}
 
 /* =========================================================
    INSCRIPTION
-   ========================================================= */
+========================================================= */
 
-showSignupLink?.addEventListener(
-  'click',
-  (event) => {
-    event.preventDefault();
+if (registerForm) {
+  registerForm.addEventListener(
+    'submit',
+    async (event) => {
+      event.preventDefault();
 
-    signupForm.hidden = false;
+      const name =
+        registerForm.elements.name;
 
-    signupForm
-      .querySelector('input')
-      ?.focus();
-  }
-);
+      const email =
+        registerForm.elements.email;
 
+      const password =
+        registerForm.elements.password;
 
-hideSignupLink?.addEventListener(
-  'click',
-  (event) => {
-    event.preventDefault();
-
-    signupForm.hidden = true;
-  }
-);
-
-
-signupForm?.addEventListener(
-  'submit',
-  async (event) => {
-    event.preventDefault();
-
-    const button =
-      signupForm.querySelector(
-        'button'
-      );
-
-    const formData =
-      new FormData(signupForm);
-
-    if (
-      formData.get('password') !==
-      formData.get(
-        'passwordConfirmation'
-      )
-    ) {
-      showToast(
-        'Les deux mots de passe ne correspondent pas.',
-        'error',
-        'Inscription impossible'
-      );
-
-      return;
-    }
-
-    button.disabled = true;
-    button.textContent =
-      'Création...';
-
-    signupMessage.textContent = '';
-    signupMessage.className =
-      'form-message';
-
-    try {
-      const response =
-        await fetch(
-          '/api/auth/register',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-            body: JSON.stringify(
-              Object.fromEntries(
-                formData
-              )
-            )
-          }
+      if (
+        !name?.value.trim() ||
+        !email?.value.trim() ||
+        !password?.value
+      ) {
+        showToast(
+          'Renseigne tous les champs.',
+          'error',
+          'Champs manquants'
         );
 
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          'L’inscription a échoué.'
-        );
+        return;
       }
 
-      window.location.assign(
-        '/profile.html'
-      );
+      const submitButton =
+        registerForm.querySelector(
+          'button[type="submit"]'
+        );
 
-    } catch (error) {
-      signupMessage.textContent =
-        error.message;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent =
+          'Création...';
+      }
 
-      signupMessage.classList.add(
-        'error'
-      );
+      try {
+        const response =
+          await fetch(
+            '/api/auth/register',
+            {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+              body: JSON.stringify({
+                name:
+                  name.value.trim(),
+                email:
+                  email.value.trim(),
+                password:
+                  password.value
+              })
+            }
+          );
 
-    } finally {
-      button.disabled = false;
-      button.textContent =
-        'Créer mon compte';
+        const data =
+          await response.json().catch(
+            () => ({})
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              'Inscription impossible.'
+          );
+        }
+
+        showToast(
+          'Ton compte a été créé.',
+          'success',
+          'Inscription réussie'
+        );
+
+        window.location.assign(
+          '/profile.html'
+        );
+      } catch (error) {
+        console.error(error);
+
+        showToast(
+          error.message ||
+            'Inscription impossible.',
+          'error',
+          'Erreur'
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent =
+            "S'inscrire";
+        }
+      }
     }
-  }
-);
+  );
+}
 
+/* =========================================================
+   MOT DE PASSE OUBLIÉ
+========================================================= */
+
+if (forgotPasswordLink) {
+  forgotPasswordLink.addEventListener(
+    'click',
+    (event) => {
+      event.preventDefault();
+
+      window.location.assign(
+        '/forgot-password.html'
+      );
+    }
+  );
+}
 
 /* =========================================================
    INITIALISATION
-   ========================================================= */
+========================================================= */
 
-updateAuthenticatedView();
+(async function init() {
+  try {
+    await updateAuthenticatedView();
 
-loadContent().catch(() => {
-  // Le HTML conserve ses données de démonstration
-  // tant que la base n'est pas configurée.
-});
+    await loadContent();
+  } catch (error) {
+    console.error(
+      'Erreur initialisation application :',
+      error
+    );
+
+    showToast(
+      error.message ||
+        'Impossible de charger les données.',
+      'error',
+      'Erreur de chargement'
+    );
+  }
+})();

@@ -19,7 +19,10 @@
 
 <body>
 
-  <!-- TOAST -->
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
   <div
     id="app-toast"
     class="app-toast"
@@ -29,31 +32,48 @@
     hidden
   >
     <strong class="app-toast-title"></strong>
+
     <span class="app-toast-message"></span>
+
     <button
       type="button"
       class="app-toast-close"
       aria-label="Fermer"
-    >×</button>
+    >
+      ×
+    </button>
   </div>
 
 
-  <!-- MODALE AUTHENTIFICATION -->
-  <div id="auth-action-modal" class="auth-action-modal" hidden>
+  <!-- =====================================================
+       MODALE AUTHENTIFICATION
+  ====================================================== -->
+
+  <div
+    id="auth-action-modal"
+    class="auth-action-modal"
+    hidden
+  >
+
     <div
       class="auth-action-card"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-action-title"
     >
+
       <button
         id="auth-action-close"
         type="button"
         class="auth-action-close"
         aria-label="Fermer"
-      >×</button>
+      >
+        ×
+      </button>
 
-      <span class="eyebrow">ESPACE PERSONNEL</span>
+      <span class="eyebrow">
+        ESPACE PERSONNEL
+      </span>
 
       <h2 id="auth-action-title">
         Connectez-vous pour continuer
@@ -61,56 +81,108 @@
 
       <p>
         Créez un compte ou connectez-vous pour publier,
-        aimer, enregistrer ou commenter une confession.
+        aimer, enregistrer ou commenter une publication.
       </p>
 
       <div class="auth-action-buttons">
-        <a class="btn btn-primary" href="/register.html">
+
+        <a
+          class="btn btn-primary"
+          href="/register.html"
+        >
           Créer un compte
         </a>
 
-        <a class="btn btn-outline" href="/login.html">
+        <a
+          class="btn btn-outline"
+          href="/login.html"
+        >
           Se connecter
         </a>
+
       </div>
+
     </div>
+
   </div>
 
 
-  <!-- HEADER -->
+  <!-- =====================================================
+       NAVBAR
+  ====================================================== -->
+
   <header class="navbar">
 
-    <a href="#accueil" class="brand">
+    <a
+      href="#accueil"
+      class="brand"
+    >
       <span class="brand-icon"></span>
       <span>Confidences</span>
     </a>
 
+
     <nav class="nav-links">
-      <a class="active" href="#accueil">Accueil</a>
-      <a href="#confessions">Confessions</a>
-      <a href="#coachs">Coachs</a>
-      <a href="#comment-ca-marche">Comment ça marche</a>
+
+      <a
+        class="active"
+        href="#accueil"
+      >
+        Accueil
+      </a>
+
+      <a href="#publications">
+        Publications
+      </a>
+
+      <a href="#coachs">
+        Coachs
+      </a>
+
+      <a href="#comment-ca-marche">
+        Comment ça marche
+      </a>
+
     </nav>
 
+
     <div class="nav-actions">
-      <a href="/login.html" class="login-link">
-        Connexion
+
+      <a
+        href="/login.html"
+        class="login-link"
+      >
+        Se connecter
       </a>
 
-      <a href="#confesser" class="btn btn-primary btn-large">
-        Faire une confession
+      <a
+        href="/profile.html"
+        class="btn btn-primary btn-large"
+        hidden
+      >
+        Mon espace personnel
       </a>
+
     </div>
 
   </header>
 
 
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
   <main>
 
-    <!-- =========================================
+
+    <!-- ===================================================
          ACCUEIL
-    ========================================== -->
-    <section id="accueil" class="hero section">
+    ==================================================== -->
+
+    <section
+      id="accueil"
+      class="hero section"
+    >
 
       <div class="hero-copy">
 
@@ -118,10 +190,12 @@
           Un espace sûr, 100 % anonyme
         </span>
 
+
         <h1>
           Parle librement.<br>
           <span>Reste anonyme.</span>
         </h1>
+
 
         <p class="lead">
           Partage ce que tu ressens, découvre les conseils
@@ -129,13 +203,14 @@
           d'un coach vérifié.
         </p>
 
+
         <div class="hero-actions">
 
           <a
             href="#confesser"
             class="btn btn-primary btn-large"
           >
-            Faire une confession
+            Faire une publication
           </a>
 
           <a
@@ -147,36 +222,63 @@
 
         </div>
 
+
         <div class="trust-row">
-          <span>Identité protégée</span>
-          <span>Coachs vérifiés</span>
-          <span>Communauté bienveillante</span>
+
+          <span>
+            Identité protégée
+          </span>
+
+          <span>
+            Coachs vérifiés
+          </span>
+
+          <span>
+            Communauté bienveillante
+          </span>
+
         </div>
 
       </div>
 
 
-      <!-- ILLUSTRATION HERO -->
+      <!-- VISUEL HERO -->
+
       <div class="hero-art">
 
         <div class="bubble bubble-orange"></div>
+
         <div class="bubble bubble-white"></div>
+
         <div class="bubble bubble-cream"></div>
+
         <div class="bubble bubble-purple"></div>
 
+
         <div class="lock-card">
+
           <span class="lock"></span>
+
         </div>
 
+
         <div class="heart-float"></div>
+
 
         <div class="anonymous-card">
 
           <span class="eye-off"></span>
 
           <div>
-            <strong>Publié en tant qu'Anonyme</strong>
-            <small>Toujours. Sans exception.</small>
+
+            <strong>
+              Publié en tant qu'Anonyme
+            </strong>
+
+            <small>
+              Toujours. Sans exception.
+            </small>
+
           </div>
 
         </div>
@@ -186,10 +288,14 @@
     </section>
 
 
-    <!-- =========================================
-         CONFESSIONS
-    ========================================== -->
-    <section id="confessions" class="page-section">
+    <!-- ===================================================
+         PUBLICATIONS
+    ==================================================== -->
+
+    <section
+      id="publications"
+      class="page-section"
+    >
 
       <div class="section-heading">
 
@@ -198,7 +304,7 @@
         </span>
 
         <h2>
-          Confessions
+          Publications
         </h2>
 
         <p>
@@ -210,16 +316,20 @@
 
 
       <!-- RECHERCHE -->
+
       <div class="search-line">
 
         <label class="search-box">
+
           <input
             id="confession-search"
             type="search"
-            placeholder="Rechercher une confession..."
-            aria-label="Rechercher une confession"
+            placeholder="Rechercher une publication..."
+            aria-label="Rechercher une publication"
           >
+
         </label>
+
 
         <button
           type="button"
@@ -232,78 +342,123 @@
       </div>
 
 
-      <!-- CATEGORIES -->
+      <!-- CATÉGORIES -->
+
       <div class="chips">
 
-        <button class="chip selected">
+        <button
+          type="button"
+          class="chip selected"
+        >
           Toutes
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Amour
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Couple
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Famille
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Amitié
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Travail
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Études
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Argent
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Développement personnel
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Confiance en soi
         </button>
 
-        <button class="chip">
+        <button
+          type="button"
+          class="chip"
+        >
           Émotions
         </button>
 
       </div>
 
 
-      <!-- RESULTATS -->
+      <!-- BARRE RÉSULTATS -->
+
       <div class="results-bar">
 
         <span>
-          <strong id="confession-count">0</strong>
-          confessions
+
+          <strong id="confession-count">
+            0
+          </strong>
+
+          publications
+
         </span>
 
+
         <span>
+
           Triées par :
+
           <button
             type="button"
             class="recent-sort"
           >
             Plus récentes
           </button>
+
         </span>
 
       </div>
 
 
-      <!-- CARTES CONFESSIONS -->
+      <!-- GRILLE PUBLICATIONS -->
+
       <div class="confession-grid">
 
         <article class="confession-card">
@@ -315,11 +470,19 @@
               <span></span>
 
               <div>
-                <strong>Anonyme</strong>
-                <small>Il y a 2 heures</small>
+
+                <strong>
+                  Anonyme
+                </strong>
+
+                <small>
+                  Il y a 2 heures
+                </small>
+
               </div>
 
             </div>
+
 
             <span class="tag">
               Couple
@@ -327,14 +490,17 @@
 
           </div>
 
+
           <h3>
             « Je ne sais plus quoi faire dans ma relation »
           </h3>
+
 
           <p>
             Je sens que mon partenaire s'éloigne de moi
             et je ne sais plus comment réagir...
           </p>
+
 
           <div class="card-meta">
             24&nbsp;&nbsp;&nbsp;&nbsp;12
@@ -352,11 +518,19 @@
               <span></span>
 
               <div>
-                <strong>Anonyme</strong>
-                <small>Il y a 5 heures</small>
+
+                <strong>
+                  Anonyme
+                </strong>
+
+                <small>
+                  Il y a 5 heures
+                </small>
+
               </div>
 
             </div>
+
 
             <span class="tag">
               Études
@@ -364,14 +538,17 @@
 
           </div>
 
+
           <h3>
             « J'ai peur de décevoir mes parents avec mon orientation »
           </h3>
+
 
           <p>
             Je voudrais suivre ma passion mais j'ai peur
             de leur réaction...
           </p>
+
 
           <div class="card-meta">
             31&nbsp;&nbsp;&nbsp;&nbsp;18
@@ -389,11 +566,19 @@
               <span></span>
 
               <div>
-                <strong>Anonyme</strong>
-                <small>Hier</small>
+
+                <strong>
+                  Anonyme
+                </strong>
+
+                <small>
+                  Hier
+                </small>
+
               </div>
 
             </div>
+
 
             <span class="tag">
               Amitié
@@ -401,14 +586,17 @@
 
           </div>
 
+
           <h3>
             « Mon meilleur ami m'a trahi et je n'arrive pas à lui pardonner »
           </h3>
+
 
           <p>
             Je ne sais pas si je dois couper définitivement
             les ponts...
           </p>
+
 
           <div class="card-meta">
             18&nbsp;&nbsp;&nbsp;&nbsp;9
@@ -418,13 +606,32 @@
 
       </div>
 
+
+      <!-- AFFICHER TOUTES LES PUBLICATIONS -->
+
+      <div class="confessions-more">
+
+        <button
+          type="button"
+          id="show-all-confessions"
+          class="btn btn-outline"
+        >
+          Afficher toutes les publications
+        </button>
+
+      </div>
+
     </section>
 
 
-    <!-- =========================================
+    <!-- ===================================================
          COACHS
-    ========================================== -->
-    <section id="coachs" class="page-section soft">
+    ==================================================== -->
+
+    <section
+      id="coachs"
+      class="page-section soft"
+    >
 
       <div class="section-heading">
 
@@ -444,57 +651,98 @@
       </div>
 
 
-      <!-- FILTRES COACHS -->
+      <!-- FILTRES -->
+
       <div class="coach-filters">
 
         <label>
+
           Recherche
 
           <div class="input">
+
             <input
               id="coach-search"
               type="search"
               placeholder="Nom, mot-clé..."
               aria-label="Rechercher un coach"
             >
+
           </div>
+
         </label>
 
 
         <label>
+
           Spécialité
 
           <div class="select">
+
             <select id="coach-specialty">
-              <option value="">Toutes</option>
+
+              <option value="">
+                Toutes
+              </option>
+
             </select>
+
           </div>
+
         </label>
 
 
         <label>
+
           Note minimale
 
           <div class="select">
+
             <select id="coach-rating">
-              <option value="">Toutes</option>
-              <option value="4">4+</option>
-              <option value="4.5">4,5+</option>
+
+              <option value="">
+                Toutes
+              </option>
+
+              <option value="4">
+                4+
+              </option>
+
+              <option value="4.5">
+                4,5+
+              </option>
+
             </select>
+
           </div>
+
         </label>
 
 
         <label>
+
           Expérience
 
           <div class="select">
+
             <select id="coach-experience">
-              <option value="">Toutes</option>
-              <option value="5">5+ ans</option>
-              <option value="10">10+ ans</option>
+
+              <option value="">
+                Toutes
+              </option>
+
+              <option value="5">
+                5+ ans
+              </option>
+
+              <option value="10">
+                10+ ans
+              </option>
+
             </select>
+
           </div>
+
         </label>
 
 
@@ -510,12 +758,18 @@
 
 
       <p class="count">
-        <strong id="coach-count">0</strong>
+
+        <strong id="coach-count">
+          0
+        </strong>
+
         coachs disponibles
+
       </p>
 
 
-      <!-- CARTES COACHS -->
+      <!-- GRILLE COACHS -->
+
       <div class="coach-grid">
 
         <article class="coach-card">
@@ -546,15 +800,32 @@
 
 
           <div class="tags">
-            <span>Couple</span>
-            <span>Amour</span>
-            <span>Émotions</span>
+
+            <span>
+              Couple
+            </span>
+
+            <span>
+              Amour
+            </span>
+
+            <span>
+              Émotions
+            </span>
+
           </div>
 
 
           <div class="rating">
-            <b>4.9</b>
-            <small>(184 avis)</small>
+
+            <b>
+              4.9
+            </b>
+
+            <small>
+              (184 avis)
+            </small>
+
           </div>
 
 
@@ -596,14 +867,28 @@
 
 
           <div class="tags">
-            <span>Confiance en soi</span>
-            <span>Développement personnel</span>
+
+            <span>
+              Confiance en soi
+            </span>
+
+            <span>
+              Développement personnel
+            </span>
+
           </div>
 
 
           <div class="rating">
-            <b>4.8</b>
-            <small>(96 avis)</small>
+
+            <b>
+              4.8
+            </b>
+
+            <small>
+              (96 avis)
+            </small>
+
           </div>
 
 
@@ -645,15 +930,32 @@
 
 
           <div class="tags">
-            <span>Travail</span>
-            <span>Études</span>
-            <span>Argent</span>
+
+            <span>
+              Travail
+            </span>
+
+            <span>
+              Études
+            </span>
+
+            <span>
+              Argent
+            </span>
+
           </div>
 
 
           <div class="rating">
-            <b>4.7</b>
-            <small>(62 avis)</small>
+
+            <b>
+              4.7
+            </b>
+
+            <small>
+              (62 avis)
+            </small>
+
           </div>
 
 
@@ -671,9 +973,10 @@
     </section>
 
 
-    <!-- =========================================
+    <!-- ===================================================
          COMMENT ÇA MARCHE
-    ========================================== -->
+    ==================================================== -->
+
     <section
       id="comment-ca-marche"
       class="page-section how"
@@ -705,14 +1008,16 @@
 
           <div>
 
-            <span>ÉTAPE 1</span>
+            <span>
+              ÉTAPE 1
+            </span>
 
             <h3>
-              Écris ta confession
+              Écris ta publication
             </h3>
 
             <p>
-              Choisis une catégorie, écris librement.
+              Choisis une catégorie et écris librement.
               Ton nom n'apparaît jamais : tu es « Anonyme ».
             </p>
 
@@ -727,7 +1032,9 @@
 
           <div>
 
-            <span>ÉTAPE 2</span>
+            <span>
+              ÉTAPE 2
+            </span>
 
             <h3>
               Reçois des avis
@@ -749,7 +1056,9 @@
 
           <div>
 
-            <span>ÉTAPE 3</span>
+            <span>
+              ÉTAPE 3
+            </span>
 
             <h3>
               Choisis un coach
@@ -769,9 +1078,10 @@
     </section>
 
 
-    <!-- =========================================
-         NOUVELLE CONFESSION
-    ========================================== -->
+    <!-- ===================================================
+         PUBLICATION
+    ==================================================== -->
+
     <section
       id="confesser"
       class="form-section"
@@ -780,12 +1090,14 @@
       <div class="form-card">
 
         <span class="eyebrow">
-          TA CONFESSION
+          TA PUBLICATION
         </span>
+
 
         <h2>
           Écris ce que tu ressens.
         </h2>
+
 
         <p>
           Ton identité restera protégée.
@@ -793,79 +1105,150 @@
         </p>
 
 
+        <!-- FORMULAIRE UNIQUE -->
+
         <form id="confession-form">
 
-          <label>
-            Titre
+
+          <!-- TITRE -->
+
+          <div class="form-group">
+
+            <label for="confession-title">
+              Titre
+            </label>
 
             <input
+              id="confession-title"
               type="text"
               name="title"
-              placeholder="Donne un titre à ta confession"
+              placeholder="Donne un titre à ta publication"
               required
             >
-          </label>
+
+          </div>
 
 
-          <label>
-            Catégorie
+          <!-- CATÉGORIE -->
+
+          <div class="form-group">
+
+            <label for="confession-category">
+              Catégorie
+            </label>
 
             <select
               id="confession-category"
               name="category"
               required
             >
+
               <option value="">
                 Choisir une catégorie
               </option>
+
             </select>
-          </label>
+
+          </div>
 
 
-          <label>
-            Ta confession
+          <!-- CONTENU -->
+
+          <div class="form-group">
+
+            <label for="confession-content">
+              Ta publication
+            </label>
 
             <textarea
+              id="confession-content"
               name="content"
+              rows="7"
               placeholder="Écris librement ce que tu ressens..."
               required
             ></textarea>
-          </label>
+
+          </div>
 
 
-          <label>
-            Choisir un coach
+          <!-- IMAGE -->
+
+          <div class="form-group">
+
+            <label for="confession-image">
+              Ajouter une image
+              <span>(facultatif)</span>
+            </label>
+
+            <input
+              type="file"
+              id="confession-image"
+              name="image"
+              accept="image/*"
+            >
+
+            <small class="image-help">
+              Image facultative · 5 Mo maximum
+            </small>
+
+          </div>
+
+
+          <!-- COACH -->
+
+          <div class="form-group">
+
+            <label for="confession-coach">
+              Choisir un coach
+              <span>(facultatif)</span>
+            </label>
 
             <select
               id="confession-coach"
               name="coachId"
             >
+
               <option value="">
                 Aucun coach
               </option>
-            </select>
-          </label>
 
+            </select>
+
+            <small>
+              Tu peux demander l'avis d'un coach vérifié.
+            </small>
+
+          </div>
+
+
+          <!-- ANONYMAT -->
 
           <div class="anonymous-note">
+
             <span>
+
               <strong>
                 Publication anonyme activée
               </strong>
 
               <small>
-                Votre nom ne sera jamais affiché publiquement.
+                Ton nom ne sera jamais affiché publiquement.
               </small>
+
             </span>
+
           </div>
 
+
+          <!-- BOUTON -->
 
           <button
             type="submit"
             class="btn btn-primary btn-full"
           >
-            Publier ma confession
+            Publier ma publication
           </button>
+
 
         </form>
 
@@ -874,9 +1257,10 @@
     </section>
 
 
-    <!-- =========================================
+    <!-- ===================================================
          CONNEXION
-    ========================================== -->
+    ==================================================== -->
+
     <section
       id="connexion"
       class="login-section"
@@ -884,63 +1268,93 @@
 
       <div class="login-panel">
 
+
         <a
           href="#accueil"
           class="brand"
         >
+
           <span class="brand-icon"></span>
-          <span>Confidences</span>
+
+          <span>
+            Confidences
+          </span>
+
         </a>
 
 
         <div class="login-content">
 
+
           <h2>
             Bon retour parmi nous
           </h2>
 
+
           <p>
-            Connectez-vous pour retrouver vos confessions
+            Connectez-vous pour retrouver vos publications
             et vos coachs.
           </p>
 
 
+          <!-- FORMULAIRE CONNEXION -->
+
           <form id="login-form">
 
-            <label>
-              Adresse e-mail
+
+            <div class="form-group">
+
+              <label for="login-email">
+                Adresse e-mail
+              </label>
 
               <input
+                id="login-email"
                 type="email"
                 name="email"
                 autocomplete="email"
                 placeholder="vous@exemple.fr"
                 required
               >
-            </label>
+
+            </div>
 
 
-            <label>
-              Mot de passe
+            <div class="form-group">
+
+              <label for="login-password">
+                Mot de passe
+              </label>
 
               <input
+                id="login-password"
                 type="password"
                 name="password"
                 autocomplete="current-password"
                 placeholder="••••••••"
                 required
               >
-            </label>
+
+            </div>
 
 
             <div class="login-options">
 
               <label class="check">
-                <input type="checkbox">
-                Se souvenir de moi
+
+                <input
+                  type="checkbox"
+                >
+
+                <span>
+                  Se souvenir de moi
+                </span>
+
               </label>
 
-              <!-- IMPORTANT : NE PAS SUPPRIMER -->
+
+              <!-- NE PAS SUPPRIMER -->
+
               <a
                 href="#"
                 id="forgot-password"
@@ -961,45 +1375,40 @@
           </form>
 
 
-          <div class="or">
-            <span></span>
-            ou
-            <span></span>
-          </div>
-
-
-          <button
-            type="button"
-            class="google-btn"
-            id="google-login"
-          >
-            Continuer avec Google
-          </button>
-
+          <!-- INSCRIPTION -->
 
           <p class="signup">
+
             Pas encore de compte ?
+
             <a
               href="/register.html"
               id="show-signup"
             >
               Créer un compte
             </a>
+
           </p>
 
 
+          <!-- DEVENIR COACH -->
+
           <p class="signup">
+
             Vous êtes coach ?
+
             <a
               class="purple"
               href="/profile.html#coach-application"
             >
               Devenir coach
             </a>
+
           </p>
 
 
           <!-- INSCRIPTION INTERNE -->
+
           <form
             id="signup-form"
             class="signup-form"
@@ -1011,54 +1420,74 @@
             </h3>
 
 
-            <label>
-              Nom
+            <div class="form-group">
+
+              <label for="signup-name">
+                Nom
+              </label>
 
               <input
+                id="signup-name"
                 type="text"
                 name="name"
                 autocomplete="name"
                 required
               >
-            </label>
+
+            </div>
 
 
-            <label>
-              Adresse e-mail
+            <div class="form-group">
+
+              <label for="signup-email">
+                Adresse e-mail
+              </label>
 
               <input
+                id="signup-email"
                 type="email"
                 name="email"
                 autocomplete="email"
                 required
               >
-            </label>
+
+            </div>
 
 
-            <label>
-              Mot de passe
+            <div class="form-group">
+
+              <label for="signup-password">
+                Mot de passe
+              </label>
 
               <input
+                id="signup-password"
                 type="password"
                 name="password"
                 minlength="8"
                 autocomplete="new-password"
                 required
               >
-            </label>
+
+            </div>
 
 
-            <label>
-              Confirmer le mot de passe
+            <div class="form-group">
+
+              <label for="signup-password-confirmation">
+                Confirmer le mot de passe
+              </label>
 
               <input
+                id="signup-password-confirmation"
                 type="password"
                 name="passwordConfirmation"
                 minlength="8"
                 autocomplete="new-password"
                 required
               >
-            </label>
+
+            </div>
 
 
             <button
@@ -1070,12 +1499,14 @@
 
 
             <p class="signup">
+
               <a
                 href="#"
                 id="hide-signup"
               >
                 J'ai déjà un compte
               </a>
+
             </p>
 
           </form>
@@ -1094,17 +1525,24 @@
 
 
       <!-- VISUEL CONNEXION -->
+
       <div class="login-visual">
 
         <div class="mini-art">
 
           <div class="bubble bubble-orange"></div>
+
           <div class="bubble bubble-white"></div>
+
           <div class="bubble bubble-cream"></div>
+
           <div class="bubble bubble-purple"></div>
 
+
           <div class="lock-card">
+
             <span class="lock"></span>
+
           </div>
 
         </div>
@@ -1114,6 +1552,7 @@
           Un espace qui vous<br>
           ressemble
         </h2>
+
 
         <p>
           Retrouvez vos échanges, vos coachs et vos favoris,
@@ -1127,26 +1566,39 @@
   </main>
 
 
-  <!-- =========================================
+  <!-- =====================================================
        FOOTER
-  ========================================== -->
+  ====================================================== -->
+
   <footer class="footer">
 
     <div class="brand">
+
       <span class="brand-icon"></span>
-      <span>Confidences</span>
+
+      <span>
+        Confidences
+      </span>
+
     </div>
+
 
     <p>
       Parle librement. Reste anonyme.
     </p>
 
+
     <small>
       © 2026 Confidences - Mi@h — Tous droits réservés.
     </small>
+    <a href="/conditions-utilisation.html">Conditions d’utilisation</a>
 
   </footer>
 
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
 
   <script src="/app.js"></script>
 

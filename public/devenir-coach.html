@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Devenir coach — Confidences</title>
+
+  <meta
+    name="description"
+    content="Rejoins les coachs de Confidences et accompagne les utilisateurs avec bienveillance."
+  >
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <!-- =====================================================
+       NAVBAR
+  ====================================================== -->
+  <header class="navbar">
+
+    <a href="/" class="brand">
+      Confidences
+    </a>
+
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="/">Accueil</a>
+      <a href="/#confessions">Publications</a>
+      <a href="/coachs.html">Coachs</a>
+      <a href="/comment-ca-marche.html">Comment ça marche</a>
+    </nav>
+
+    <div class="nav-actions">
+
+      <a
+        href="/connexion.html"
+        class="login-link btn btn-secondary"
+      >
+        Connexion
+      </a>
+
+      <a
+        href="/profile.html"
+        class="profile-link btn btn-secondary"
+        hidden
+      >
+        Mon espace personnel
+      </a>
+
+      <a
+        href="/#confesser"
+        class="btn btn-primary"
+      >
+        Faire une publication
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       CONTENU PRINCIPAL
+  ====================================================== -->
+  <main>
+
+    <section class="page-section coach-application-page">
+
+      <div class="section-heading">
+        <span class="eyebrow">Devenir coach</span>
+
+        <h1>
+          Accompagne les autres avec bienveillance.
+        </h1>
+
+        <p>
+          Si tu souhaites aider les membres de la communauté,
+          tu peux proposer ta candidature pour devenir coach
+          sur Confidences.
+        </p>
+      </div>
+
+
+      <!-- =================================================
+           ÉTAT UTILISATEUR NON CONNECTÉ
+      ================================================== -->
+      <div
+        id="coach-login-required"
+        class="form-card coach-status-card"
+        hidden
+      >
+
+        <h2>
+          Connecte-toi pour continuer
+        </h2>
+
+        <p>
+          Tu dois être connecté à ton compte pour pouvoir
+          déposer une candidature coach.
+        </p>
+
+        <a
+          href="/connexion.html"
+          class="btn btn-primary"
+        >
+          Se connecter
+        </a>
+
+      </div>
+
+
+      <!-- =================================================
+           ÉTAT COACH DÉJÀ APPROUVÉ
+      ================================================== -->
+      <div
+        id="coach-already-approved"
+        class="form-card coach-status-card"
+        hidden
+      >
+
+        <div class="status-icon">
+          ✓
+        </div>
+
+        <h2>
+          Tu es déjà coach
+        </h2>
+
+        <p>
+          Ton profil coach est déjà validé.
+          Tu n'as donc pas besoin de déposer une nouvelle
+          candidature.
+        </p>
+
+        <a
+          href="/dashboard-coach.html"
+          class="btn btn-primary"
+        >
+          Accéder à mon espace coach
+        </a>
+
+      </div>
+
+
+      <!-- =================================================
+           CANDIDATURE EN ATTENTE
+      ================================================== -->
+      <div
+        id="coach-application-pending"
+        class="form-card coach-status-card"
+        hidden
+      >
+
+        <div class="status-icon">
+          ⏳
+        </div>
+
+        <h2>
+          Candidature en cours de validation
+        </h2>
+
+        <p>
+          Ta candidature coach a bien été enregistrée.
+          Elle est actuellement en attente de validation
+          par notre équipe.
+        </p>
+
+        <p class="status-help">
+          Tu recevras une information lorsque ton profil
+          aura été examiné.
+        </p>
+
+      </div>
+
+
+      <!-- =================================================
+           FORMULAIRE DE CANDIDATURE
+      ================================================== -->
+      <div
+        id="coach-application-container"
+        class="form-card"
+        hidden
+      >
+
+        <h2>
+          Ta candidature
+        </h2>
+
+        <p class="form-intro">
+          Présente-toi et explique-nous comment tu souhaites
+          accompagner les membres de Confidences.
+        </p>
+
+        <form
+          id="coach-application-form"
+          enctype="multipart/form-data"
+        >
+
+          <!-- Spécialité -->
+          <label for="coach-speciality">
+            Spécialité
+
+            <input
+              id="coach-speciality"
+              name="speciality"
+              type="text"
+              maxlength="150"
+              placeholder="Ex. Développement personnel"
+              required
+            >
+          </label>
+
+
+          <!-- Expérience -->
+          <label for="coach-experience">
+            Expérience
+
+            <input
+              id="coach-experience"
+              name="experience"
+              type="text"
+              maxlength="150"
+              placeholder="Ex. 5 ans d'expérience"
+              required
+            >
+          </label>
+
+
+          <!-- Biographie -->
+          <label for="coach-bio">
+            Présentation
+
+            <textarea
+              id="coach-bio"
+              name="bio"
+              rows="7"
+              maxlength="3000"
+              placeholder="Présente ton parcours, ton approche et la manière dont tu souhaites aider les membres..."
+              required
+            ></textarea>
+          </label>
+
+
+          <!-- Photo -->
+          <label for="coach-photo">
+            Photo de profil
+
+            <input
+              id="coach-photo"
+              name="photo"
+              type="file"
+              accept="image/*"
+            >
+
+            <small class="image-help">
+              Photo facultative · image uniquement
+            </small>
+          </label>
+
+
+          <!-- Message d'information -->
+          <div class="anonymous-note">
+
+            <div>
+              <strong>
+                Une candidature sérieuse et bienveillante
+              </strong>
+
+              <small>
+                Ton profil sera vérifié avant d'être visible
+                publiquement comme profil coach.
+              </small>
+            </div>
+
+          </div>
+
+
+          <!-- Message d'erreur/succès -->
+          <div
+            id="coach-application-message"
+            class="form-message"
+            hidden
+            role="alert"
+          ></div>
+
+
+          <!-- Bouton -->
+          <button
+            type="submit"
+            class="btn btn-primary btn-full"
+          >
+            Envoyer ma candidature
+          </button>
+
+        </form>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+  <script>
+    const loginRequired =
+      document.querySelector('#coach-login-required');
+
+    const alreadyApproved =
+      document.querySelector('#coach-already-approved');
+
+    const applicationPending =
+      document.querySelector('#coach-application-pending');
+
+    const applicationContainer =
+      document.querySelector('#coach-application-container');
+
+    const applicationForm =
+      document.querySelector('#coach-application-form');
+
+    const applicationMessage =
+      document.querySelector('#coach-application-message');
+
+    const navLoginLink =
+      document.querySelector('.nav-actions .login-link');
+
+    const navProfileLink =
+      document.querySelector('.nav-actions .profile-link');
+
+
+    function showMessage(message, type = 'error') {
+
+      if (!applicationMessage) {
+        return;
+      }
+
+      applicationMessage.hidden = false;
+
+      applicationMessage.className =
+        `form-message form-message-${type}`;
+
+      applicationMessage.textContent = message;
+    }
+
+
+    function hideStates() {
+
+      if (loginRequired) {
+        loginRequired.hidden = true;
+      }
+
+      if (alreadyApproved) {
+        alreadyApproved.hidden = true;
+      }
+
+      if (applicationPending) {
+        applicationPending.hidden = true;
+      }
+
+      if (applicationContainer) {
+        applicationContainer.hidden = true;
+      }
+    }
+
+
+    async function getCurrentUser() {
+
+      try {
+
+        const response = await fetch(
+          '/api/auth/me',
+          {
+            credentials: 'include'
+          }
+        );
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const data =
+          await response.json();
+
+        return data.user || data || null;
+
+      } catch (error) {
+
+        console.error(
+          'Erreur récupération utilisateur :',
+          error
+        );
+
+        return null;
+      }
+    }
+
+
+    async function loadCoachApplication() {
+
+      hideStates();
+
+      const user =
+        await getCurrentUser();
+
+
+      /*
+       * UTILISATEUR NON CONNECTÉ
+       */
+      if (!user) {
+
+        if (loginRequired) {
+          loginRequired.hidden = false;
+        }
+
+        return;
+      }
+
+
+      /*
+       * UTILISATEUR CONNECTÉ
+       */
+      if (navLoginLink) {
+        navLoginLink.hidden = true;
+      }
+
+      if (navProfileLink) {
+        navProfileLink.hidden = false;
+      }
+
+
+      /*
+       * DÉJÀ COACH
+       */
+      if (
+        String(user.role || '').toUpperCase() === 'COACH'
+      ) {
+
+        if (alreadyApproved) {
+          alreadyApproved.hidden = false;
+        }
+
+        return;
+      }
+
+
+      /*
+       * RÉCUPÉRATION DE LA CANDIDATURE EXISTANTE
+       */
+      try {
+
+        const response = await fetch(
+          '/api/coaches/application',
+          {
+            credentials: 'include'
+          }
+        );
+
+
+        if (response.status === 401) {
+
+          if (loginRequired) {
+            loginRequired.hidden = false;
+          }
+
+          return;
+        }
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            'Impossible de vérifier ta candidature.'
+          );
+        }
+
+
+        const data =
+          await response.json();
+
+
+        const application =
+          data.application ||
+          data.coach ||
+          data.profile ||
+          null;
+
+
+        /*
+         * CANDIDATURE EN ATTENTE
+         */
+        if (
+          application &&
+          String(application.status || '').toUpperCase() ===
+            'PENDING'
+        ) {
+
+          if (applicationPending) {
+            applicationPending.hidden = false;
+          }
+
+          return;
+        }
+
+
+        /*
+         * PROFIL APPROUVÉ
+         */
+        if (
+          application &&
+          String(application.status || '').toUpperCase() ===
+            'APPROVED'
+        ) {
+
+          if (alreadyApproved) {
+            alreadyApproved.hidden = false;
+          }
+
+          return;
+        }
+
+
+        /*
+         * AUCUNE CANDIDATURE ACTIVE
+         */
+        if (applicationContainer) {
+          applicationContainer.hidden = false;
+        }
+
+
+        /*
+         * Pré-remplissage si un ancien profil existe
+         */
+        if (applicationForm && application) {
+
+          if (application.speciality) {
+            applicationForm.elements.speciality.value =
+              application.speciality;
+          }
+
+          if (application.experience) {
+            applicationForm.elements.experience.value =
+              application.experience;
+          }
+
+          if (application.bio) {
+            applicationForm.elements.bio.value =
+              application.bio;
+          }
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        if (applicationContainer) {
+          applicationContainer.hidden = false;
+        }
+
+        showMessage(
+          error.message ||
+            'Impossible de vérifier ta candidature.',
+          'error'
+        );
+      }
+    }
+
+
+    /*
+     * ENVOI DE LA CANDIDATURE
+     */
+    if (applicationForm) {
+
+      applicationForm.addEventListener(
+        'submit',
+        async (event) => {
+
+          event.preventDefault();
+
+
+          const submitButton =
+            applicationForm.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          if (submitButton) {
+
+            submitButton.disabled = true;
+
+            submitButton.textContent =
+              'Envoi en cours...';
+          }
+
+
+          try {
+
+            const formData =
+              new FormData(applicationForm);
+
+
+            const response =
+              await fetch(
+                '/api/coaches/application',
+                {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData
+                }
+              );
+
+
+            const data =
+              await response
+                .json()
+                .catch(() => ({}));
+
+
+            if (response.status === 401) {
+
+              throw new Error(
+                'Connecte-toi pour déposer une candidature.'
+              );
+            }
+
+
+            if (response.status === 403) {
+
+              throw new Error(
+                data.error ||
+                'Tu es déjà coach.'
+              );
+            }
+
+
+            if (response.status === 409) {
+
+              throw new Error(
+                data.error ||
+                'Une candidature existe déjà.'
+              );
+            }
+
+
+            if (!response.ok) {
+
+              throw new Error(
+                data.error ||
+                'Impossible d’envoyer ta candidature.'
+              );
+            }
+
+
+            showMessage(
+              data.message ||
+              'Ta candidature a bien été envoyée.',
+              'success'
+            );
+
+
+            /*
+             * On recharge l'état de la page
+             * pour afficher immédiatement
+             * le statut PENDING.
+             */
+            await loadCoachApplication();
+
+
+          } catch (error) {
+
+            console.error(
+              'Erreur candidature coach :',
+              error
+            );
+
+
+            /*
+             * On réaffiche le message même
+             * après le changement d'état.
+             */
+            if (applicationContainer) {
+              applicationContainer.hidden = false;
+            }
+
+
+            showMessage(
+              error.message ||
+                'Impossible d’envoyer ta candidature.',
+              'error'
+            );
+
+
+          } finally {
+
+            if (submitButton) {
+
+              submitButton.disabled = false;
+
+              submitButton.textContent =
+                'Envoyer ma candidature';
+            }
+          }
+
+        }
+      );
+    }
+
+
+    /*
+     * INITIALISATION
+     */
+    loadCoachApplication();
+  </script>
+
+</body>
+</html>
+```
